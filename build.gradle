@@ -1,0 +1,47 @@
+plugins {
+	id 'org.springframework.boot' version '2.2.2.RELEASE'
+	id 'io.spring.dependency-management' version '1.0.8.RELEASE'
+	id 'java'
+	id 'idea'
+}
+
+group = 'wolfe-software.com'
+version = '0.0.1-SNAPSHOT'
+sourceCompatibility = '11'
+
+repositories {
+	mavenCentral()
+}
+
+
+dependencies {
+
+	// Spring Boot, Spring Security, Spring Persistence / JPA
+	implementation("org.springframework.boot:spring-boot-starter-web")
+	implementation("org.springframework.boot:spring-boot-starter-security")
+	implementation("org.springframework.boot:spring-boot-starter-data-jpa")
+
+	// Additional Jackson functionality for marshalling LocalDate & LocalDateTime
+	compile group: 'com.fasterxml.jackson.datatype', name: 'jackson-datatype-jsr310', version: '2.10.1'
+
+	// Java Web Token
+	compile group: 'io.jsonwebtoken', name: 'jjwt', version: '0.9.1'
+
+	// SuperCSV - Used to pull back CSVs from Yahoo
+	compile group: 'net.sf.supercsv', name: 'super-csv', version: '2.3.1'
+
+	// MySql
+	runtimeOnly("mysql:mysql-connector-java")
+
+
+
+
+
+	testCompile('org.springframework.boot:spring-boot-starter-test')
+	testCompile('com.jayway.jsonpath:json-path')
+
+}
+
+test {
+	useJUnitPlatform()
+}
