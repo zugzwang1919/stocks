@@ -19,7 +19,6 @@ import com.wolfesoftware.stocks.config.JwtTokenUtil;
 import com.wolfesoftware.stocks.model.JwtResponse;
 
 @RestController
-@CrossOrigin
 public class JwtAuthenticationController {
 
     @Autowired

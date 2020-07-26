@@ -24,8 +24,6 @@ public class Stock extends UserBasedPersistentEntity {
     @Column(columnDefinition = "tinyint", nullable = false)
     private Boolean benchmark;
 
-    private static final long serialVersionUID = 1L;
-
     // Constructors
 
 

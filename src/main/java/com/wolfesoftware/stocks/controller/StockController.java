@@ -26,7 +26,6 @@ public class StockController {
     public Stock retrieveOneStock(@PathVariable("id") Long id) {
         return stockService.retrieveById(id);
     }
-
     @GetMapping("")
     public List<Stock> retrieveAllStocks() {
         return stockService.retrieveAll();
