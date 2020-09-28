@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -39,6 +40,17 @@ public class StockSplitService {
 
     // OTHER - Non-CRUD Services
 
+    public BigDecimal stockSplitFactorSince(Stock stock, LocalDate sinceDate) {
+
+        BigDecimal returnValue = BigDecimal.ONE;
+
+        List<StockSplit> stockSplits = stockSplitRepository.retrieveForOneStockBetweenDates(stock, sinceDate, LocalDate.now());
+        for (StockSplit ss: stockSplits) {
+            returnValue = returnValue.multiply(ss.getAfterAmount()).divide(ss.getBeforeAmount());
+        }
+        return returnValue;
+    }
+
     /*
     Typically used when a stock is created.  This method will retrieve and
     then persist StockSplits.
@@ -61,7 +73,7 @@ public class StockSplitService {
     }
 
 
-    public LoadOrUpdateResponse loadOrUpdateStockSplitsForAllSecurities(LocalDate beginDate, LocalDate endDate) {
+    private LoadOrUpdateResponse loadOrUpdateStockSplitsForAllSecurities(LocalDate beginDate, LocalDate endDate) {
         LoadOrUpdateResponse response = new LoadOrUpdateResponse();
         LocalDate today = LocalDate.now();
         for( Stock stock : stockRepository.retrieveAll() ) {

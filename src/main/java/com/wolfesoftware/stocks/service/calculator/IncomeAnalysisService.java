@@ -36,7 +36,8 @@ public class IncomeAnalysisService {
     @Transactional
     public IncomeAnalysisResponse analyze(LocalDate startDate, LocalDate endDate, List<Long> portfolioIds, List<Long> stockIds, boolean includeDividends, boolean includeOptions) {
 
-        LocalDate augmentedStartDate = startDate == null ? LocalDate.of(1900, 1, 1) : startDate;
+        LocalDate beginningOfTime = LocalDate.of(1900,1,1);
+        LocalDate augmentedStartDate = startDate == null ? beginningOfTime : startDate;
         LocalDate augmentedEndDate = endDate == null ? LocalDate.now() : endDate;
 
         List<Stock> stocks = new Converter<Stock>().convertFromIdsToEntities(stockIds, stockRepository, "stock");
@@ -44,11 +45,13 @@ public class IncomeAnalysisService {
         List<LifeCycle> lifeCycles = new ArrayList<>();
         Map<Stock,List<StockDividend>> dividendCache =  new HashMap<>();
         stocks.forEach(s->{
-            List<StockTransaction> stockTransactions = stockTransactionRepository.retrieveForOneStock(s, augmentedStartDate, augmentedEndDate, portfolios);
+            List<StockTransaction> stockTransactions = stockTransactionRepository.retrieveForOneStock(s, beginningOfTime, augmentedEndDate, portfolios);
             List<OptionTransaction> optionTransactions = optionTransactionRepository.retrieveForOneStock(s, augmentedStartDate, augmentedEndDate, portfolios);
-            // FIXME - hardcoded true & true
             LifeCycle lifeCycle = lifeCycleService.buildStockLifeCycle(s, augmentedStartDate, augmentedEndDate, stockTransactions, optionTransactions, dividendCache, includeDividends, includeOptions);
-            lifeCycles.add(lifeCycle);
+            // If a LifeCycle was created (It might not be created if there was no intersection between the portfolio and stocks selected)
+            if (lifeCycle != null) {
+                lifeCycles.add(lifeCycle);
+            }
         });
 
         IncomeAnalysisResponse incomeAnalysisResponse = new IncomeAnalysisResponse();

@@ -96,10 +96,11 @@ public class PositionService {
         return adjustedSize;
     }
 
+
     protected  void calculateValue(Position position) {
         if (position != null) {
             StockPriceService stockPriceService = BridgeToSpringBean.getBean(StockPriceService.class);
-            BigDecimal price = stockPriceService.retrieveClosingPrice(position.getStock(), position.getDate()).getPrice();
+            BigDecimal price = stockPriceService.retrieveClosingPrice(position.getStock(), position.getDate());
             position.setValue( position.getSize().multiply(price, MathContext.UNLIMITED));
         }
     }

@@ -89,6 +89,11 @@ public class LifeCycleService {
             populateOptionInfo(lifeCycle, optionTransactions);
         }
 
+        // Go ahead an make the simple calculation of "Total Long Exposure"
+        // This is simply the value of the closing position plus any potential to "have to" purchase shares based on PUTS sold
+        if (lifeCycle.getClosingPosition() != null) {
+            lifeCycle.setTotalLongExposure(lifeCycle.getClosingPosition().getValue().add(lifeCycle.getOptionExposureToPutsAtRequestedEndDate()));
+        }
         // At this point, a bunch of very simple calculations have been performed.
         // Subsequent calculations are based on what was found.
 
@@ -420,7 +425,7 @@ public class LifeCycleService {
             // Mimic BUYs in dollar amounts
             if (newInterveningStockTransaction.getActivity().equals(StockTransaction.Activity.BUY)) {
                 newInterveningStockTransaction.setAmount(existingStockTransaction.getAmount());
-                BigDecimal price = stockPriceService.retrieveClosingPrice(newInterveningStockTransaction.getStock(), newInterveningStockTransaction.getDate()).getPrice();
+                BigDecimal price = stockPriceService.retrieveClosingPrice(newInterveningStockTransaction.getStock(), newInterveningStockTransaction.getDate());
                 BigDecimal size = newInterveningStockTransaction.getAmount().divide(price, 3, RoundingMode.HALF_EVEN);
                 newInterveningStockTransaction.setTradeSize(size);
                 existingReferencePositionSize = existingReferencePositionSize.add(existingStockTransaction.getTradeSize());
@@ -435,7 +440,7 @@ public class LifeCycleService {
                     BigDecimal desiredSizeOfOurNewPosition = ourReferencePositionSize.multiply(percentageOfReferencePosition, MathContext.UNLIMITED);
                     BigDecimal transactionSize = desiredSizeOfOurNewPosition.subtract(ourReferencePositionSize);
                     newInterveningStockTransaction.setTradeSize(transactionSize.abs());
-                    BigDecimal price = stockPriceService.retrieveClosingPrice(newInterveningStockTransaction.getStock(), newInterveningStockTransaction.getDate()).getPrice();
+                    BigDecimal price = stockPriceService.retrieveClosingPrice(newInterveningStockTransaction.getStock(), newInterveningStockTransaction.getDate());
                     BigDecimal value = newInterveningStockTransaction.getTradeSize().multiply(price);
                     newInterveningStockTransaction.setAmount(value);
                     existingReferencePositionSize = existingPosition.getSize();
@@ -447,7 +452,7 @@ public class LifeCycleService {
                 // results in a divide by zero.  Oops.  We need a different approach that is similar to what takes place above when buying.
                 else {
                     newInterveningStockTransaction.setAmount(existingStockTransaction.getAmount());
-                    BigDecimal price = stockPriceService.retrieveClosingPrice(newInterveningStockTransaction.getStock(), newInterveningStockTransaction.getDate()).getPrice();
+                    BigDecimal price = stockPriceService.retrieveClosingPrice(newInterveningStockTransaction.getStock(), newInterveningStockTransaction.getDate());
                     BigDecimal size = newInterveningStockTransaction.getAmount().divide(price, 3, RoundingMode.HALF_EVEN);
                     newInterveningStockTransaction.setTradeSize(size);
                     existingReferencePositionSize = existingReferencePositionSize.subtract(existingStockTransaction.getTradeSize());

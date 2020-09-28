@@ -38,6 +38,7 @@ public class LifeCycle {
     private Long                            lengthOfTimePeriodOfInterest;
     private BigDecimal                      dailyAverageCapitalAtRisk = BigDecimal.ZERO;
     private BigDecimal                      annualizedIncomeReturnOnInvestment = BigDecimal.ZERO;
+    private BigDecimal                      totalLongExposure = BigDecimal.ZERO;
 
 
 
@@ -167,8 +168,10 @@ public class LifeCycle {
     public void setAnnualizedIncomeReturnOnInvestment(BigDecimal annualizedIncomeReturnOnInvestment) {
         this.annualizedIncomeReturnOnInvestment = annualizedIncomeReturnOnInvestment;
     }
-
-
-
-
+    public BigDecimal getTotalLongExposure() {
+        return totalLongExposure;
+    }
+    public void setTotalLongExposure(BigDecimal totalLongExposure) {
+        this.totalLongExposure = totalLongExposure;
+    }
 }

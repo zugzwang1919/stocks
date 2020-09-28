@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
@@ -24,17 +25,27 @@ public class StockPriceService {
     @Resource
     private StockPriceRepository stockPriceRepository;
 
+    @Resource
+    private StockSplitService stockSplitService;
+
     private static final long DAYS_TO_STILL_BE_CONSIDERED_TIMELY = 14;
 
     private final Logger logger = LoggerFactory.getLogger(StockPriceService.class);
 
 
 
+    public BigDecimal retrieveClosingPrice(Stock stock, LocalDate requestedDate) {
+        StockPrice dbStockPrice = retrieveDbClosingPrice(stock, requestedDate);
+        BigDecimal actualPriceOnDate = stockSplitService.stockSplitFactorSince(stock, requestedDate).
+                                        multiply(dbStockPrice.getPrice());
+        return actualPriceOnDate;
+    }
+
 
     @Transactional
     // NOTE:  It's important to note that unlike other methods in this class this method will use
     // NOTE:  both the SparseStockPrice and StockPrice PersistentEntities
-    public StockPrice retrieveClosingPrice(Stock stock, LocalDate requestedDate) {
+    public StockPrice retrieveDbClosingPrice(Stock stock, LocalDate requestedDate) {
         if (requestedDate.isBefore(StockPrice.EARLIEST_DAILY_PRICE)) {
             // FIXME - Need to use SparseStockPrice
             return null;
@@ -45,6 +56,8 @@ public class StockPriceService {
             return possiblePrices.isEmpty() ? null : possiblePrices.get(0);
         }
     }
+
+
 
 
     @Scheduled(cron = "0 30 16,20,23 * * *")

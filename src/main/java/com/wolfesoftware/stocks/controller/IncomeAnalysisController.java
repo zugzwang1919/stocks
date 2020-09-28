@@ -12,6 +12,7 @@ import com.wolfesoftware.stocks.model.calculator.IncomeAnalysisResponse;
 import com.wolfesoftware.stocks.service.JwtUserDetailsService;
 import com.wolfesoftware.stocks.service.calculator.IncomeAnalysisService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -22,6 +23,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 @RestController
@@ -32,7 +34,8 @@ public class IncomeAnalysisController {
 
 
     @RequestMapping(value = "/income-analysis", method = RequestMethod.POST)
-    public IncomeAnalysisResponse createAuthenticationToken(@RequestParam LocalDate beginDate, @RequestParam LocalDate endDate,
+    public IncomeAnalysisResponse createAuthenticationToken(@RequestParam("beginDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate beginDate,
+                                                            @RequestParam("endDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
                                                             @RequestParam List<Long> portfolioIds, @RequestParam List<Long> stockIds,
                                                             @RequestParam Boolean includeDividends, @RequestParam Boolean includeOptions) {
         return incomeAnalysisService.analyze(beginDate, endDate, portfolioIds, stockIds, includeDividends, includeOptions);

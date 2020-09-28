@@ -32,8 +32,7 @@ public class OptionTransactionRepository extends UserBasedRepository<OptionTrans
     // RETRIEVE
     public List<OptionTransaction> retrieveForOneStock(Stock stock, LocalDate beginDate, LocalDate endDate, List<Portfolio> portfolios) {
         User currentUser = repositoryUtil.getCurrentUser();
-        // FIXME: NOTE I'm not using portfolios yet.
-        return userBasedRepositoryForOptionTransactions.findByUserAndStockAndDateBetween(currentUser, stock, beginDate, endDate);
+        return userBasedRepositoryForOptionTransactions.findByUserAndStockAndDateBetweenAndPortfolioIn(currentUser, stock, beginDate, endDate, portfolios);
     }
 
 

@@ -38,7 +38,7 @@ public class StockTransactionRepository extends UserBasedRepository<StockTransac
     public List<StockTransaction> retrieveForOneStock(Stock stock, LocalDate beginDate, LocalDate endDate, List<Portfolio> portfolios) {
         User currentUser = repositoryUtil.getCurrentUser();
         // FIXME: NOTE I'm not using portfolios yet.
-        return userBasedRepositoryForStockTransactions.findByUserAndStockAndDateBetween(currentUser, stock, beginDate, endDate);
+        return userBasedRepositoryForStockTransactions.findByUserAndStockAndDateBetweenAndPortfolioIn(currentUser, stock, beginDate, endDate, portfolios);
     }
 
 
