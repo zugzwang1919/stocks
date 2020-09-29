@@ -1,8 +1,8 @@
 package com.wolfesoftware.stocks.service.calculator;
 
-import com.wolfesoftware.stocks.exception.IllegalActionException;
 import com.wolfesoftware.stocks.exception.NotFoundException;
 import com.wolfesoftware.stocks.model.*;
+import com.wolfesoftware.stocks.model.calculator.ClosingPosition;
 import com.wolfesoftware.stocks.model.calculator.IncomeAnalysisResponse;
 import com.wolfesoftware.stocks.model.calculator.LifeCycle;
 import com.wolfesoftware.stocks.repository.*;
@@ -44,18 +44,45 @@ public class IncomeAnalysisService {
         List<Portfolio> portfolios = new Converter<Portfolio>().convertFromIdsToEntities(portfolioIds, portfolioRepository, "portfolio");
         List<LifeCycle> lifeCycles = new ArrayList<>();
         Map<Stock,List<StockDividend>> dividendCache =  new HashMap<>();
+        IncomeAnalysisResponse incomeAnalysisResponse = new IncomeAnalysisResponse();
+        IncomeAnalysisResponse.AnalysisTotals analysisTotals = incomeAnalysisResponse.getAnalysisTotals();
         stocks.forEach(s->{
             List<StockTransaction> stockTransactions = stockTransactionRepository.retrieveForOneStock(s, beginningOfTime, augmentedEndDate, portfolios);
             List<OptionTransaction> optionTransactions = optionTransactionRepository.retrieveForOneStock(s, augmentedStartDate, augmentedEndDate, portfolios);
             LifeCycle lifeCycle = lifeCycleService.buildStockLifeCycle(s, augmentedStartDate, augmentedEndDate, stockTransactions, optionTransactions, dividendCache, includeDividends, includeOptions);
-            // If a LifeCycle was created (It might not be created if there was no intersection between the portfolio and stocks selected)
+            // If a LifeCycle was created
             if (lifeCycle != null) {
+
+                // Increment Totals for the entire LifeCycle
+                analysisTotals.incrementProceeds(lifeCycle.getClosingPosition().getValue());
+                analysisTotals.incrementDividendProceeds(lifeCycle.getDividendsAccrued());
+                analysisTotals.incrementOptionProceeds(lifeCycle.getOptionProceedsAccrued());
+                analysisTotals.incrementTotalGains(lifeCycle.getProfitsFromSecurities());
+
+
+
+
+                // Note whether or not this stock should be included in the end of year snapshot
+                // And then help build the GRAND TOTALS for all of the snapshots
+                lifeCycle.setIncludedInSnapshot(augmentedEndDate.equals(lifeCycle.getClosingPosition().getDate()));
+                if (lifeCycle.isIncludedInSnapshot()) {
+                    IncomeAnalysisResponse.SnapshotTotals snapshotTotals = incomeAnalysisResponse.getSnapshotTotals();
+                    ClosingPosition closingPosition = lifeCycle.getClosingPosition();
+                    snapshotTotals.incrementStockValue(closingPosition.getValue());
+                    snapshotTotals.incrementPutExposure(lifeCycle.getOptionExposureToPutsAtRequestedEndDate());
+                    snapshotTotals.incrementTotalLongExposure(closingPosition.getValue().add(lifeCycle.getOptionExposureToPutsAtRequestedEndDate()));
+                    snapshotTotals.incrementCallableExposure(lifeCycle.getOptionExposureToCallsAtRequestedEndDate());
+                }
+                // Add the LifeCycle to the response
                 lifeCycles.add(lifeCycle);
+
             }
         });
 
-        IncomeAnalysisResponse incomeAnalysisResponse = new IncomeAnalysisResponse();
         incomeAnalysisResponse.setLifeCycles(lifeCycles);
+
+
+
         return incomeAnalysisResponse;
     }
 

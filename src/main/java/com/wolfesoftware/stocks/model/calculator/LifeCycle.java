@@ -39,7 +39,7 @@ public class LifeCycle {
     private BigDecimal                      dailyAverageCapitalAtRisk = BigDecimal.ZERO;
     private BigDecimal                      annualizedIncomeReturnOnInvestment = BigDecimal.ZERO;
     private BigDecimal                      totalLongExposure = BigDecimal.ZERO;
-
+    private boolean                         includedInSnapshot = false;
 
 
     public Stock getStock() {
@@ -174,4 +174,11 @@ public class LifeCycle {
     public void setTotalLongExposure(BigDecimal totalLongExposure) {
         this.totalLongExposure = totalLongExposure;
     }
+    public boolean isIncludedInSnapshot() {
+        return includedInSnapshot;
+    }
+    public void setIncludedInSnapshot(boolean includedInSnapshot) {
+        this.includedInSnapshot = includedInSnapshot;
+    }
+
 }
