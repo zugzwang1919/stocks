@@ -102,4 +102,7 @@ public class Stock extends UserBasedPersistentEntity {
             }
         }
     }
+
+
+
 }

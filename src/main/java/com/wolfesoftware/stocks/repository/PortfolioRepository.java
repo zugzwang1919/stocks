@@ -3,12 +3,15 @@ package com.wolfesoftware.stocks.repository;
 import com.wolfesoftware.stocks.common.BridgeToSpringBean;
 import com.wolfesoftware.stocks.exception.NotFoundException;
 import com.wolfesoftware.stocks.model.Portfolio;
+import com.wolfesoftware.stocks.model.User;
 import com.wolfesoftware.stocks.repository.cloaked.UserBasedRepositoryForPortfolios;
 import com.wolfesoftware.stocks.service.PortfolioService;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import javax.annotation.Resource;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -16,6 +19,8 @@ public class PortfolioRepository extends UserBasedRepository<Portfolio> {
     @Resource
     UserBasedRepositoryForPortfolios userBasedRepositoryForPortfolios;
 
+    @Resource
+    RepositoryUtil repositoryUtil;
 
     // Configure this class to be a subclass of  UserBasedRepository
     public PortfolioRepository(){
@@ -46,6 +51,14 @@ public class PortfolioRepository extends UserBasedRepository<Portfolio> {
     }
 
 
-
+    public List<Portfolio> retrievePortfolios(List<Long> portfolioIds) {
+        // If we get a null or empty list, just return an empty list
+        // Hibernate does not seem to like null/empty values
+        if (portfolioIds == null || portfolioIds.isEmpty()) {
+            return new ArrayList<>();
+        }
+        User currentUser = repositoryUtil.getCurrentUser();
+        return userBasedRepositoryForPortfolios.findByUserAndIdIn(currentUser, portfolioIds);
+    }
 
 }

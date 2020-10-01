@@ -1,6 +1,7 @@
 package com.wolfesoftware.stocks.controller;
 
 import com.wolfesoftware.stocks.model.Portfolio;
+import com.wolfesoftware.stocks.model.Stock;
 import com.wolfesoftware.stocks.service.PortfolioService;
 import org.springframework.web.bind.annotation.*;
 
@@ -43,4 +44,12 @@ public class PortfolioController {
     public void deletePortfolio(@PathVariable("id") Long id) {
         portfolioService.deleteById(id);
     }
+
+
+    // GET STOCKS!!! that are contained in the list of portfolios
+    @GetMapping("/tickers")
+    public List<Stock> retrieveStocksUsedInPortfolios(@RequestParam(required = false) List<Long> portfolioIds) {
+        return portfolioService.retrieveStocksUsedInPortfolios(portfolioIds);
+    }
+
 }

@@ -12,6 +12,7 @@ import org.springframework.stereotype.Repository;
 import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -37,7 +38,6 @@ public class StockTransactionRepository extends UserBasedRepository<StockTransac
     // RETRIEVE
     public List<StockTransaction> retrieveForOneStock(Stock stock, LocalDate beginDate, LocalDate endDate, List<Portfolio> portfolios) {
         User currentUser = repositoryUtil.getCurrentUser();
-        // FIXME: NOTE I'm not using portfolios yet.
         return userBasedRepositoryForStockTransactions.findByUserAndStockAndDateBetweenAndPortfolioIn(currentUser, stock, beginDate, endDate, portfolios);
     }
 
@@ -73,6 +73,17 @@ public class StockTransactionRepository extends UserBasedRepository<StockTransac
     }
 
 
-
+    // Retrieve all StockTransactions that are used in the list of portfolios
+    public List<StockTransaction> retrieve(List<Portfolio> portfolios) {
+        // Just in case the caller provided no portfolios return an empty list.
+        // Hibernate does not like providing a list that is empty
+        if (portfolios == null || portfolios.isEmpty()) {
+            return new ArrayList<>();
+        }
+        // Get the current user
+        User currentUser = repositoryUtil.getCurrentUser();
+        // Retrieve the StockTransactions with the cloaked repo
+        return userBasedRepositoryForStockTransactions.findByUserAndPortfolioIn(currentUser, portfolios);
+    }
 
 }
