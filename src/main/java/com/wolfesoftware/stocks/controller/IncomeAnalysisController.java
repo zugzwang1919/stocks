@@ -6,20 +6,15 @@
 package com.wolfesoftware.stocks.controller;
 
 
-import com.wolfesoftware.stocks.config.JwtTokenUtil;
-import com.wolfesoftware.stocks.model.JwtResponse;
 import com.wolfesoftware.stocks.model.calculator.IncomeAnalysisResponse;
-import com.wolfesoftware.stocks.service.JwtUserDetailsService;
 import com.wolfesoftware.stocks.service.calculator.IncomeAnalysisService;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.format.annotation.DateTimeFormat;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.authentication.DisabledException;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
 import java.time.LocalDate;
@@ -28,16 +23,23 @@ import java.util.List;
 
 @RestController
 public class IncomeAnalysisController {
+    private static Logger logger = LoggerFactory.getLogger(IncomeAnalysisController.class);
 
     @Resource
     IncomeAnalysisService incomeAnalysisService;
 
 
     @RequestMapping(value = "/income-analysis", method = RequestMethod.POST)
-    public IncomeAnalysisResponse createAuthenticationToken(@RequestParam("beginDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate beginDate,
-                                                            @RequestParam("endDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
-                                                            @RequestParam List<Long> portfolioIds, @RequestParam List<Long> stockIds,
-                                                            @RequestParam Boolean includeDividends, @RequestParam Boolean includeOptions) {
+    public IncomeAnalysisResponse performAnalysis(@RequestParam("beginDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate beginDate,
+                                                  @RequestParam("endDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
+                                                  @RequestParam List<Long> portfolioIds, @RequestParam List<Long> stockIds,
+                                                  @RequestParam Boolean includeDividends, @RequestParam Boolean includeOptions) {
+        logger.debug("Inside performAnalysis() - Begin Date = {}", beginDate == null ? null : beginDate.format(DateTimeFormatter.ISO_LOCAL_DATE));
+        logger.debug("Inside performAnalysis() - End Date = {}", endDate == null ? null : endDate.format(DateTimeFormatter.ISO_LOCAL_DATE));
+        logger.debug("Inside performAnalysis() - portfolioIds = {}", portfolioIds);
+        logger.debug("Inside performAnalysis() - stockIds = {}", stockIds);
+        logger.debug("Inside performAnalysis() - includeDividends = {}", includeDividends);
+        logger.debug("Inside performAnalysis() - includeOptions = {}", includeOptions);
         return incomeAnalysisService.analyze(beginDate, endDate, portfolioIds, stockIds, includeDividends, includeOptions);
     }
 
