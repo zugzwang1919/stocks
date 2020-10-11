@@ -10,6 +10,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -54,10 +57,13 @@ public class IncomeAnalysisService {
             if (lifeCycle != null) {
 
                 // Increment Totals for the entire LifeCycle
-                analysisTotals.incrementProceeds(lifeCycle.getClosingPosition().getValue());
+                analysisTotals.incrementProceeds(lifeCycle.getProfitsFromSecurities());
                 analysisTotals.incrementDividendProceeds(lifeCycle.getDividendsAccrued());
                 analysisTotals.incrementOptionProceeds(lifeCycle.getOptionProceedsAccrued());
+                // Add the totals
                 analysisTotals.incrementTotalGains(lifeCycle.getProfitsFromSecurities());
+                analysisTotals.incrementTotalGains(lifeCycle.getDividendsAccrued());
+                analysisTotals.incrementTotalGains(lifeCycle.getOptionProceedsAccrued());
 
 
 
@@ -81,11 +87,28 @@ public class IncomeAnalysisService {
 
         incomeAnalysisResponse.setLifeCycles(lifeCycles);
 
+        // Once all lifeCycles have been created, we can calculate ...
+        // the analysisTotal.annualReturn
+        incomeAnalysisResponse.getAnalysisTotals().setAnnualReturn(calculateOverallAnnualizedReturn(lifeCycles));
 
 
         return incomeAnalysisResponse;
     }
 
+
+    private BigDecimal calculateOverallAnnualizedReturn(List<LifeCycle> lifeCycles) {
+        BigDecimal numerator = BigDecimal.ZERO;
+        BigDecimal denominator = BigDecimal.ZERO;
+        for(LifeCycle lifeCycle: lifeCycles) {
+            numerator = numerator.add(lifeCycle.getAnnualizedIncomeReturnOnInvestment().multiply(lifeCycle.getTotalDollarDays()));
+            denominator = denominator.add(lifeCycle.getTotalDollarDays());
+        }
+        if (denominator.compareTo(BigDecimal.ZERO) > 0 ) {
+            return numerator.divide(denominator, 12, RoundingMode.HALF_EVEN);
+        }
+        return BigDecimal.ZERO;
+
+    }
 
     private class Converter<T> {
         private List<T> convertFromIdsToEntities(List<Long> ids, UserBasedRepository userBasedRepository, String nameOfUserBasedEntity) {

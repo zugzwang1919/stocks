@@ -1,6 +1,6 @@
 plugins {
-	id 'org.springframework.boot' version '2.2.2.RELEASE'
-	id 'io.spring.dependency-management' version '1.0.8.RELEASE'
+	id 'org.springframework.boot' version '2.3.3.RELEASE'
+	id 'io.spring.dependency-management' version '1.0.10.RELEASE'
 	id 'java'
 	id 'idea'
 }
@@ -20,26 +20,23 @@ dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-web")
 	implementation("org.springframework.boot:spring-boot-starter-security")
 	implementation("org.springframework.boot:spring-boot-starter-data-jpa")
+	implementation ("org.springframework.boot:spring-boot-starter-validation")
 
 	// Additional Jackson functionality for marshalling LocalDate & LocalDateTime
-	compile group: 'com.fasterxml.jackson.datatype', name: 'jackson-datatype-jsr310', version: '2.10.1'
+	compile group: 'com.fasterxml.jackson.datatype', name: 'jackson-datatype-jsr310', version: '2.11.3'
 
 	// Java Web Token
 	compile group: 'io.jsonwebtoken', name: 'jjwt', version: '0.9.1'
 
 	// SuperCSV - Used to pull back CSVs from Yahoo
-	compile group: 'net.sf.supercsv', name: 'super-csv', version: '2.3.1'
+	compile group: 'net.sf.supercsv', name: 'super-csv', version: '2.4.0'
 
 	// MySql
 	runtimeOnly("mysql:mysql-connector-java")
 
-
 	// Logging with logback-classic through slf4j
 	compile group: 'org.slf4j', name: 'slf4j-api', version: '1.7.30'
 	runtime group: 'ch.qos.logback', name: 'logback-classic', version: '1.2.3'
-
-
-
 
 
 
