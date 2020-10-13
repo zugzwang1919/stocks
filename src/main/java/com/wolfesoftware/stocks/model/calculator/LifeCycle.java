@@ -1,6 +1,7 @@
 package com.wolfesoftware.stocks.model.calculator;
 
 import com.wolfesoftware.stocks.model.*;
+import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.math.BigDecimal;
@@ -10,7 +11,7 @@ import java.util.List;
 
 public class LifeCycle {
 
-    private static final org.slf4j.Logger logger = LoggerFactory.getLogger(LifeCycle.class);
+    private static final Logger logger = LoggerFactory.getLogger(LifeCycle.class);
 
     private Stock                           stock;
     private LocalDate                       requestedStartDate;

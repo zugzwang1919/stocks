@@ -26,6 +26,7 @@ import com.wolfesoftware.stocks.model.Stock;
 import com.wolfesoftware.stocks.model.StockDividend;
 import com.wolfesoftware.stocks.model.StockPrice;
 import com.wolfesoftware.stocks.model.StockSplit;
+import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.supercsv.io.CsvListReader;
 import org.supercsv.io.ICsvListReader;
@@ -58,7 +59,7 @@ public class YahooFinance {
 
 
 
-    private static final org.slf4j.Logger logger = LoggerFactory.getLogger(YahooFinance.class);
+    private static final Logger logger = LoggerFactory.getLogger(YahooFinance.class);
 
     private static final YahooToken  yahooToken = new YahooToken();
 

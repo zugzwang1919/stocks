@@ -127,18 +127,20 @@ public class StockPriceService {
     SecurityPrices and update them as necessary.  It will do this for all stocks.
     */
     public LoadOrUpdateResponse loadOrUpdateAllStockPrices(LocalDate beginDate, LocalDate endDate) {
+        LocalDate augmentedBeginDate = beginDate.isBefore(StockPrice.EARLIEST_DAILY_PRICE) ? StockPrice.EARLIEST_DAILY_PRICE : beginDate;
         logger.info("Beginning load/update of stock prices.");
         LoadOrUpdateResponse response = new LoadOrUpdateResponse();
         for (Stock stock : stockRepository.retrieveAll()) {
             try {
                 LoadOrUpdateResponse oneStockResults;
-                oneStockResults = loadOrUpdateStockPrices(stock, beginDate, endDate);
+                oneStockResults = loadOrUpdateStockPrices(stock, augmentedBeginDate, endDate);
                 response.accumulate(oneStockResults);
             } catch (Exception e) {
                 logger.error("Error occurred during mass load of data for " + stock.getTicker() + ".  Processing will continue.");
                 logger.error("Message from exception =  "  + e.getMessage());
             }
         }
+        response.buildSummary();
         logger.info("Completing load/update of stock prices.");
         logger.info("{} prices were loaded.", response.getItemsLoaded());
         logger.info("{} prices were updated.", response.getItemsUpdated());
@@ -152,8 +154,9 @@ public class StockPriceService {
     StockPrices and update them as necessary.
     */
     private LoadOrUpdateResponse loadOrUpdateStockPrices(Stock stock, LocalDate beginDate, LocalDate endDate) {
+        LocalDate augmentedBeginDate = beginDate.isBefore(StockPrice.EARLIEST_DAILY_PRICE) ? StockPrice.EARLIEST_DAILY_PRICE : beginDate;
         LoadOrUpdateResponse response = new LoadOrUpdateResponse();
-        List<StockPrice> stockPrices = YahooFinance.getHistoricalStockPrices(stock, beginDate, endDate, null);
+        List<StockPrice> stockPrices = YahooFinance.getHistoricalStockPrices(stock, augmentedBeginDate, endDate, null);
         for (StockPrice sp : stockPrices) {
             Optional<StockPrice> optionalStockPrice = stockPriceRepository.retrieveByStockAndDate(stock, sp.getDate());
             if (optionalStockPrice.isEmpty()) {

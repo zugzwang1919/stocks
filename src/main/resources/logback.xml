@@ -31,6 +31,7 @@
 
     <!-- Logging levels for Our stuff -->
     <logger name="com.wolfesoftware.stocks.controller" level="DEBUG"/>
+    <logger name="com.wolfesoftware.stocks.common.YahooFinance" level="DEBUG"/>
     <logger name="com.wolfesoftware" level="INFO"/>
 
     <!-- Logging for stuff that we use -->

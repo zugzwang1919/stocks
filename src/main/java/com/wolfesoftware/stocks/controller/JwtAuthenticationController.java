@@ -12,6 +12,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 import com.wolfesoftware.stocks.service.JwtUserDetailsService;
@@ -33,7 +34,10 @@ public class JwtAuthenticationController {
         authenticate(userName, password);
         final UserDetails userDetails = userDetailsService.loadUserByUsername(userName);
         final String token = jwtTokenUtil.generateToken(userDetails);
-        return ResponseEntity.ok(new JwtResponse(token));
+        // If we find a ROLE_ADMIN role in the authorities for this user, set isAdmin to TRUE
+        final Boolean isAdmin = userDetails.getAuthorities().stream().
+                                filter(simpleGrantedAuthority -> simpleGrantedAuthority.toString().equals("ROLE_ADMIN")).count() > 0;
+        return ResponseEntity.ok(new JwtResponse(token, isAdmin));
     }
 
     private void authenticate(String username, String password) throws Exception {

@@ -55,37 +55,36 @@ public class StockDividendService {
 
     @Scheduled(cron = "0 0 0 * * SAT")
     @Transactional
-    public void loadOrUpdateStockSplitsFromLastTenYears() {
+    public void loadOrUpdateAllDividends() {
 
-        LoadOrUpdateResponse response = loadOrUpdateStockSplitsForAllSecurities(LocalDate.now().minusDays(365*10), LocalDate.now());
+        LoadOrUpdateResponse response = loadOrUpdateDividendsForAllSecurities(StockDividend.EARLIEST_STOCK_DIVIDEND_DATE, LocalDate.now());
         logger.info(response.getSummary());
 
     }
 
 
-    public LoadOrUpdateResponse loadOrUpdateStockSplitsForAllSecurities(LocalDate beginDate, LocalDate endDate) {
+    public LoadOrUpdateResponse loadOrUpdateDividendsForAllSecurities(LocalDate beginDate, LocalDate endDate) {
         LoadOrUpdateResponse response = new LoadOrUpdateResponse();
         LocalDate today = LocalDate.now();
         for( Stock stock : stockRepository.retrieveAll() ) {
             LocalDate mostRecentPriceDate = stockPriceRepository.mostRecentStockPriceDate(stock);
             // As long as this stock still exists
             if (mostRecentPriceDate != null && mostRecentPriceDate.isAfter(today.minusDays(30))) {
-                LoadOrUpdateResponse resultsFromOneSecurity = loadOrUpdateStockDividendsForOneStock(stock, beginDate, endDate);
+                LoadOrUpdateResponse resultsFromOneSecurity = loadOrUpdateDividendsForOneStock(stock, beginDate, endDate);
                 response.accumulate(resultsFromOneSecurity);
             }
         }
-
+        response.buildSummary();
         return response;
     }
 
 
 
-    private LoadOrUpdateResponse loadOrUpdateStockDividendsForOneStock(Stock stock, LocalDate beginDate, LocalDate endDate) {
+    private LoadOrUpdateResponse loadOrUpdateDividendsForOneStock(Stock stock, LocalDate beginDate, LocalDate endDate) {
         LoadOrUpdateResponse result = new LoadOrUpdateResponse();
         List<StockDividend> yahooStockDividends = YahooFinance.getHistoricalStockDividends(stock, beginDate, endDate);
         for (StockDividend foundStockDividend : yahooStockDividends) {
             List<StockDividend> existingStockDividends = stockDividendRepository.retrieveForOneStockOnOneDate(stock, foundStockDividend.getExDividendDate());
-            logger.debug("Stock dividend found - {} - to be compared with existing ones.", foundStockDividend);
             if (existingStockDividends.size() > 1) {
                 // Unexpected discovery.  Multiple stock dividends for the same date are already in the database
                 logger.error("Multiple stock dividends were found for {} on {}.  No action will be taken.", stock.getTicker(), foundStockDividend.getExDividendDate());

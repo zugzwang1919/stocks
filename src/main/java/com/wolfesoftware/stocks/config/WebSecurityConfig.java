@@ -76,6 +76,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 //antMatchers("/stock").permitAll().
                 // Endpoints available only to Admins
                 antMatchers("/authority/**").access("hasRole('ROLE_ADMIN')").
+                antMatchers("/admin/**").access("hasRole('ROLE_ADMIN')").
                 antMatchers(HttpMethod.DELETE, "/user/*").access("hasRole('ROLE_ADMIN')").  // Delete a User
                 // all other requests are available to Users and Admins
                 anyRequest().access("hasAnyRole('ROLE_USER', 'ROLE_ADMIN')").

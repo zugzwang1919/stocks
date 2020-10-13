@@ -5,6 +5,8 @@ public class LoadOrUpdateResponse {
     private int itemsUpdated = 0;
     private int itemsUnmodified = 0;
 
+    private String summary;
+
     // Getters and Setters
 
     public int getItemsLoaded() {
@@ -25,7 +27,9 @@ public class LoadOrUpdateResponse {
     public void setItemsUnmodified(int itemsUnmodified) {
         this.itemsUnmodified = itemsUnmodified;
     }
-
+    public String getSummary() {
+        return summary;
+    }
 
     // Other Methods
 
@@ -49,8 +53,8 @@ public class LoadOrUpdateResponse {
         addToItemsUnmodified(otherResults.itemsUnmodified);
     }
 
-    public String getSummary() {
-        return  "There were " + itemsLoaded + " items loaded.  " + itemsUpdated +
-                " items updated.  " + itemsUnmodified  + " items unmodified.";
+    public void buildSummary() {
+        summary =   "There were " + itemsLoaded + " items loaded.  " + itemsUpdated +
+                    " items updated.  " + itemsUnmodified  + " items unmodified.";
     }
 }

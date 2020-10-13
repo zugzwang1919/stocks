@@ -6,6 +6,7 @@ import com.wolfesoftware.stocks.model.calculator.*;
 import com.wolfesoftware.stocks.service.StockDividendService;
 import com.wolfesoftware.stocks.service.StockPriceService;
 import com.wolfesoftware.stocks.service.StockSplitService;
+import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
@@ -40,7 +41,7 @@ public class LifeCycleService {
     @Resource
     StockSplitService stockSplitService;
 
-    private static final org.slf4j.Logger logger = LoggerFactory.getLogger(LifeCycleService.class);
+    private static final Logger logger = LoggerFactory.getLogger(LifeCycleService.class);
 
 
 

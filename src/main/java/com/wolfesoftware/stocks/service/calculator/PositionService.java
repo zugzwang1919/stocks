@@ -7,6 +7,7 @@ import com.wolfesoftware.stocks.model.StockTransaction;
 import com.wolfesoftware.stocks.model.calculator.Position;
 import com.wolfesoftware.stocks.repository.StockSplitRepository;
 import com.wolfesoftware.stocks.service.StockPriceService;
+import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
@@ -21,7 +22,7 @@ import java.util.List;
 @Service
 public class PositionService {
 
-    private static final org.slf4j.Logger logger = LoggerFactory.getLogger(PositionService.class);
+    private static final Logger logger = LoggerFactory.getLogger(PositionService.class);
 
 
     public Position createPreciseNonValuedPositionAfterOpeningPosition(Position openingPosition,

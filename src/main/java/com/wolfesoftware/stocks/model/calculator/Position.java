@@ -3,6 +3,7 @@ package com.wolfesoftware.stocks.model.calculator;
 import com.wolfesoftware.stocks.common.BridgeToSpringBean;
 import com.wolfesoftware.stocks.model.Stock;
 import com.wolfesoftware.stocks.service.StockPriceService;
+import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.math.BigDecimal;
@@ -18,7 +19,7 @@ public class Position {
     private BigDecimal  value;
 
 
-    private static final org.slf4j.Logger logger = LoggerFactory.getLogger(Position.class);
+    private static final Logger logger = LoggerFactory.getLogger(Position.class);
 
 
     // Constructors

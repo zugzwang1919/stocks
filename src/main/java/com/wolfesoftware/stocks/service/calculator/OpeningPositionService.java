@@ -2,6 +2,7 @@ package com.wolfesoftware.stocks.service.calculator;
 
 import com.wolfesoftware.stocks.model.StockTransaction;
 import com.wolfesoftware.stocks.model.calculator.OpeningPosition;
+import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
@@ -14,7 +15,7 @@ import java.util.List;
 @Service
 public class OpeningPositionService extends PositionService {
 
-    private static final org.slf4j.Logger logger = LoggerFactory.getLogger(OpeningPositionService.class);
+    private static final Logger logger = LoggerFactory.getLogger(OpeningPositionService.class);
 
 
 
