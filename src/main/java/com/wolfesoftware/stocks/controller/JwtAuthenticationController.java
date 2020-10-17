@@ -6,6 +6,8 @@
 package com.wolfesoftware.stocks.controller;
 
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -29,15 +31,21 @@ public class JwtAuthenticationController {
     @Autowired
     private JwtUserDetailsService userDetailsService;
 
+    private static final Logger logger = LoggerFactory.getLogger(JwtAuthenticationController.class);
+
     @RequestMapping(value = "/authenticate", method = RequestMethod.POST)
     public ResponseEntity<?> createAuthenticationToken(@RequestParam String userName, @RequestParam String password) throws Exception {
+        logger.debug("Inside createAuthenticationToken() for user {}", userName);
         authenticate(userName, password);
         final UserDetails userDetails = userDetailsService.loadUserByUsername(userName);
+        logger.debug("Inside createAuthenticationToken() for user {} UserDetails should have been created based on data in DB", userName);
         final String token = jwtTokenUtil.generateToken(userDetails);
         // If we find a ROLE_ADMIN role in the authorities for this user, set isAdmin to TRUE
         final Boolean isAdmin = userDetails.getAuthorities().stream().
                                 filter(simpleGrantedAuthority -> simpleGrantedAuthority.toString().equals("ROLE_ADMIN")).count() > 0;
-        return ResponseEntity.ok(new JwtResponse(token, isAdmin));
+        ResponseEntity responseEntity =  ResponseEntity.ok(new JwtResponse(token, isAdmin));
+        logger.debug("Leaving createAuthenticationToken() for user {}", userName);
+        return responseEntity;
     }
 
     private void authenticate(String username, String password) throws Exception {

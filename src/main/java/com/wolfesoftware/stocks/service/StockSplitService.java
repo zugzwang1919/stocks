@@ -56,7 +56,7 @@ public class StockSplitService {
     then persist StockSplits.
     */
     public List<StockSplit> initialLoadOfStockSplits(Stock stock) {
-        LocalDate beginDate = StockSplit.earliestStockSplit;
+        LocalDate beginDate = StockSplit.EARLIEST_STOCK_SPLIT;
         LocalDate today = LocalDate.now();
         List<StockSplit> stockSplits = YahooFinance.getHistoricalStockSplits(stock, beginDate, today);
         return stockSplitRepository.persistStockSplits(stockSplits);
@@ -65,15 +65,15 @@ public class StockSplitService {
 
     @Scheduled(cron = "0 0 0 * * SAT")
     @Transactional
-    public void loadOrUpdateStockSplitsFromLastTenYears() {
+    public void loadOrUpdateAllStockSplits() {
 
-        LoadOrUpdateResponse response = loadOrUpdateStockSplitsForAllSecurities(LocalDate.now().minusDays(365*10), LocalDate.now());
+        LoadOrUpdateResponse response = loadOrUpdateStockSplitsForAllSecurities(StockSplit.EARLIEST_STOCK_SPLIT, LocalDate.now());
         logger.info(response.getSummary());
 
     }
 
 
-    private LoadOrUpdateResponse loadOrUpdateStockSplitsForAllSecurities(LocalDate beginDate, LocalDate endDate) {
+    public LoadOrUpdateResponse loadOrUpdateStockSplitsForAllSecurities(LocalDate beginDate, LocalDate endDate) {
         LoadOrUpdateResponse response = new LoadOrUpdateResponse();
         LocalDate today = LocalDate.now();
         for( Stock stock : stockRepository.retrieveAll() ) {
@@ -85,6 +85,11 @@ public class StockSplitService {
             }
         }
 
+        response.buildSummary();
+        logger.info("Completing load/update of stock splits.");
+        logger.info("{} stock splits were loaded.", response.getItemsLoaded());
+        logger.info("{} stock splits were updated.", response.getItemsUpdated());
+        logger.info("{} stock splits were unmodified.", response.getItemsUnmodified());
         return response;
     }
 

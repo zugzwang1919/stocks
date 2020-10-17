@@ -4,6 +4,9 @@ import com.wolfesoftware.stocks.exception.DuplicateException;
 import com.wolfesoftware.stocks.exception.NotFoundException;
 import com.wolfesoftware.stocks.model.User;
 import com.wolfesoftware.stocks.repository.cloaked.LowLevelUserRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import javax.annotation.Resource;
@@ -12,6 +15,8 @@ import java.util.Optional;
 @Repository
 public class UserRepository  {
 
+    public static Logger logger = LoggerFactory.getLogger(UserRepository.class);
+
     @Resource
     LowLevelUserRepository lowLevelUserRepository;
 
@@ -19,9 +24,16 @@ public class UserRepository  {
         return lowLevelUserRepository.findById(id);
     }
 
+
+
     public Optional<User> findUserByUserName(String username) {
-        return lowLevelUserRepository.findByUsername(username);
+        logger.debug("Inside findUserByUserName() where user name = {}", username);
+        Optional<User> userToBeReturned =  lowLevelUserRepository.findByUsername(username);
+        logger.debug("Inside findUserByUserName() after retrieval");
+        return userToBeReturned;
     }
+
+
 
     public User createUser(User user) {
         if (lowLevelUserRepository.existsByUsername(user.getUsername()))

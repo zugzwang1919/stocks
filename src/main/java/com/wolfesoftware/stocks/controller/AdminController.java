@@ -3,8 +3,10 @@ package com.wolfesoftware.stocks.controller;
 import com.wolfesoftware.stocks.model.LoadOrUpdateResponse;
 import com.wolfesoftware.stocks.model.StockDividend;
 import com.wolfesoftware.stocks.model.StockPrice;
+import com.wolfesoftware.stocks.model.StockSplit;
 import com.wolfesoftware.stocks.service.StockDividendService;
 import com.wolfesoftware.stocks.service.StockPriceService;
+import com.wolfesoftware.stocks.service.StockSplitService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -22,6 +24,8 @@ public class AdminController {
     StockPriceService stockPriceService;
     @Resource
     StockDividendService stockDividendService;
+    @Resource
+    StockSplitService stockSplitService;
 
     private static Logger logger = LoggerFactory.getLogger(AdminController.class);
 
@@ -45,6 +49,17 @@ public class AdminController {
         LocalDate endDate = LocalDate.now();
         LoadOrUpdateResponse response = stockDividendService.loadOrUpdateDividendsForAllSecurities(beginDate, endDate);
 
+        logger.debug(response.getSummary());
+        return response;
+    }
+
+    @PostMapping("/reloadAllStockSplits")
+    public LoadOrUpdateResponse reloadAllStockSplits() {
+        logger.debug("Inside reloadAllStockSplits()");
+
+        LocalDate beginDate = StockSplit.EARLIEST_STOCK_SPLIT;
+        LocalDate endDate = LocalDate.now();
+        LoadOrUpdateResponse response = stockSplitService.loadOrUpdateStockSplitsForAllSecurities(beginDate, endDate);
         logger.debug(response.getSummary());
         return response;
     }

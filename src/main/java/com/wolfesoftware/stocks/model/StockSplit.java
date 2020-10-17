@@ -6,6 +6,7 @@ import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.Month;
 
 
 @Entity
@@ -23,7 +24,7 @@ public class StockSplit extends PersistentEntity {
     private static final long serialVersionUID = 1L;
 
 
-    public static final LocalDate earliestStockSplit = LocalDate.of(1980, 1, 1);  // Jan 1, 1980
+    public static final LocalDate EARLIEST_STOCK_SPLIT = LocalDate.of(2011, Month.JANUARY, 1);  // Jan 1, 1980
 
 
     // Constructors

@@ -30,12 +30,18 @@
     </root>
 
     <!-- Logging levels for Our stuff -->
-    <logger name="com.wolfesoftware.stocks.controller" level="DEBUG"/>
-    <logger name="com.wolfesoftware.stocks.common.YahooFinance" level="DEBUG"/>
+    <!-- <logger name="com.wolfesoftware.stocks.controller" level="DEBUG"/> -->
+    <!-- <logger name="com.wolfesoftware.stocks.repository" level="DEBUG"/> -->
+    <!-- <logger name="com.wolfesoftware.stocks.service" level="DEBUG"/> -->
+    <!-- <logger name="com.wolfesoftware.stocks.common.YahooFinance" level="DEBUG"/> -->
     <logger name="com.wolfesoftware" level="INFO"/>
 
     <!-- Logging for stuff that we use -->
     <logger name="org.hibernate" level="INFO"/>
+    <!-- <logger name="org.hibernate.cache" level="DEBUG"/> -->
+    <logger name="org.hibernate.SQL" level="DEBUG"/>
+    <!-- <logger name="org.hibernate.type.descriptor" level="TRACE"/> -->
+
     <logger name="org.springframework" level="INFO"/>
     <logger name="com.zaxxer" level="INFO"/> <!-- Hikari -->
 
