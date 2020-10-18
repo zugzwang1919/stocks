@@ -29,7 +29,7 @@ public class StockSplitService {
     private StockSplitRepository stockSplitRepository;
 
 
-    private static Logger logger = LoggerFactory.getLogger("StockSplitService.class");
+    private static Logger logger = LoggerFactory.getLogger(StockSplitService.class);
 
 
     // RETRIEVE
@@ -98,7 +98,7 @@ public class StockSplitService {
         List<StockSplit> yahooStockSplits = YahooFinance.getHistoricalStockSplits(stock, beginDate, endDate);
         for (StockSplit foundStockSplit : yahooStockSplits) {
             List<StockSplit> existingStockSplits = stockSplitRepository.retrieveForOneStockOnOneDate(stock, foundStockSplit.getDate());
-            logger.debug("Stock split found - {} - to be compared with existing ones.", foundStockSplit);
+            logger.debug("Stock split found for {} - to be compared with existing ones.", foundStockSplit.getStock().getTicker());
             if (existingStockSplits.size() > 1) {
                 // Unexpected discovery.  Multiple stock splits for the same date are already in the database
                 logger.error("Multiple stock splits were found for {} on {}.  No action will be taken.", stock.getTicker(), foundStockSplit.getDate());
