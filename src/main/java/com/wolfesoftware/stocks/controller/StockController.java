@@ -22,6 +22,10 @@ public class StockController {
     }
 
     // RETRIEVE
+    @GetMapping("/benchmarks")
+    public List<Stock> retrieveAllBenchmarks() {
+        return stockService.retrieveAllBenchmarks();
+    }
     @GetMapping("/{id}")
     public Stock retrieveOneStock(@PathVariable("id") Long id) {
         return stockService.retrieveById(id);

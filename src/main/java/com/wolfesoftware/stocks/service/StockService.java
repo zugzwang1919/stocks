@@ -11,6 +11,7 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import java.util.List;
 
 @Service
 public class StockService extends UserBasedService<Stock> {
@@ -63,6 +64,9 @@ public class StockService extends UserBasedService<Stock> {
 
     }
 
+    public List<Stock> retrieveAllBenchmarks() {
+        return stockRepository.retrieveAllBenchmarks();
+    }
 
     @Transactional
     // NOTE: We don't allow the user to change the Ticker Symbol

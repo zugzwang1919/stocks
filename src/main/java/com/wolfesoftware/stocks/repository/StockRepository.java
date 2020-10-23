@@ -2,12 +2,14 @@ package com.wolfesoftware.stocks.repository;
 
 import com.wolfesoftware.stocks.exception.NotFoundException;
 import com.wolfesoftware.stocks.model.Stock;
+import com.wolfesoftware.stocks.model.User;
 import com.wolfesoftware.stocks.repository.cloaked.UserBasedRepositoryForStocks;
 import org.springframework.data.domain.Example;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import javax.annotation.Resource;
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -34,6 +36,15 @@ public class StockRepository extends UserBasedRepository<Stock>{
         stockToBeCreated.setBenchmark(benchmark);
         return userBasedRepositoryForStocks.save(stockToBeCreated);
     }
+
+    // RETRIEVE - NOTE: retrieveById() and retrieveAll() are handled by UserBasedRepository
+
+    public List<Stock> retrieveAllBenchmarks() {
+        // Get the current user
+        User currentUser = repositoryUtil.getCurrentUser();
+        return userBasedRepositoryForStocks.findAllBenchmarksByUser(currentUser);
+    }
+
 
     // EXISTENCE
 
