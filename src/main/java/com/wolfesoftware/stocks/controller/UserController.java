@@ -28,6 +28,8 @@ public class UserController {
         List<Authority> authorities = new ArrayList<>();
         authorities.add(a);
         u.setAuthorities(authorities);
+
+        //
         return userRepository.updateUser(u);
     }
 

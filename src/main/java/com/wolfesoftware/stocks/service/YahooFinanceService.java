@@ -3,7 +3,20 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.wolfesoftware.stocks.common;
+package com.wolfesoftware.stocks.service;
+
+import com.wolfesoftware.stocks.common.BigDecimalUtil;
+import com.wolfesoftware.stocks.exception.NotFoundException;
+import com.wolfesoftware.stocks.model.Stock;
+import com.wolfesoftware.stocks.model.StockDividend;
+import com.wolfesoftware.stocks.model.StockPrice;
+import com.wolfesoftware.stocks.model.StockSplit;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
+import org.supercsv.io.CsvListReader;
+import org.supercsv.io.ICsvListReader;
+import org.supercsv.prefs.CsvPreference;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -16,29 +29,19 @@ import java.time.LocalDateTime;
 import java.time.Month;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
-import static java.time.temporal.ChronoUnit.DAYS;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import com.wolfesoftware.stocks.exception.NotFoundException;
-import com.wolfesoftware.stocks.model.Stock;
-import com.wolfesoftware.stocks.model.StockDividend;
-import com.wolfesoftware.stocks.model.StockPrice;
-import com.wolfesoftware.stocks.model.StockSplit;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.supercsv.io.CsvListReader;
-import org.supercsv.io.ICsvListReader;
-import org.supercsv.prefs.CsvPreference;
-
+import static java.time.temporal.ChronoUnit.DAYS;
 
 
 /**
  *
  * @author Russ
  */
-public class YahooFinance {
+@Service
+public class YahooFinanceService {
     
     
     private static final String TODAYS_PRICE_URL_TEMPLATE = "https://query1.finance.yahoo.com/v7/finance/download/%TICKER%?period1=%FROM_DATE_WITH_TIME%&period2=%TO_DATE_WITH_TIME%&interval=1d&events=history&crumb=%CRUMB%";
@@ -57,36 +60,34 @@ public class YahooFinance {
     private static final Integer MAXIMUM_NUMBER_OF_RETRIES = 5;
     private static final int TIMEOUT = 15000;  // For now, set the connection timeout with Yahoo Finance at 15 seconds
 
+    private static final Logger logger = LoggerFactory.getLogger(YahooFinanceService.class);
 
 
-    private static final Logger logger = LoggerFactory.getLogger(YahooFinance.class);
+    // NOTE:  We only need one token for anyone using this service.  The token is capable of upgrading itself
+    // NOTE:  as the crumb / cookie inside it expires
+    private final YahooToken  yahooToken = new YahooToken();
 
-    private static final YahooToken  yahooToken = new YahooToken();
 
-    public static YahooToken getYahooToken() {
-        return yahooToken;
-    }
     
-    
-    public static String getTickersStockName(String tickerSymbol) {
+    public String getTickersStockName(String tickerSymbol) {
         StockQueryResults sqr = getStockNameCrumbAndCookie(tickerSymbol);
         return sqr.stockName;
     }
     
-    public static boolean isTickerValid(String tickerSymbol) {
+    public boolean isTickerValid(String tickerSymbol) {
         String url = substituteTickerAndStartEndDates(HISTORICAL_PRICE_URL_TEMPLATE, tickerSymbol, LocalDate.now().minusDays(10), LocalDate.now());
         List<List<String>> yahooRecentPrices = null;
         try {
             yahooRecentPrices = errorProneRetrieveCsvFromYahoo(url,7);
         }
         catch (IOException ioe) {
-            logger.debug("Inside YahooFinance.isTickerValid().  IOException occurred.");
+            logger.debug("Inside YahooFinanceService.isTickerValid().  IOException occurred.");
         }
         return yahooRecentPrices != null && yahooRecentPrices.size() > 0;            
     }
 
 
-    public static StockPrice getTodaysStockPrice(Stock stock) {
+    public StockPrice getTodaysStockPrice(Stock stock) {
         
         logger.debug("Attempting to get today's price for {}...", stock.getTicker());
         StockPrice result = null;
@@ -101,7 +102,7 @@ public class YahooFinance {
         return result;            
     }
     
-    public static List<StockPrice> getHistoricalStockPrices(Stock stock, LocalDate fromDate, LocalDate toDate, String optionalUrlTemplate) {
+    public List<StockPrice> getHistoricalStockPrices(Stock stock, LocalDate fromDate, LocalDate toDate, String optionalUrlTemplate) {
         String templateToBeUsed = optionalUrlTemplate == null ? HISTORICAL_PRICE_URL_TEMPLATE : optionalUrlTemplate;
         List<StockPrice> result = new ArrayList<>();
         List<List<String>> listOfPrices = getParsedHistoricalData(templateToBeUsed,stock.getTicker(), fromDate, toDate, 7);
@@ -113,7 +114,7 @@ public class YahooFinance {
                 // I've seen a few times when there's garbage in just one of a stock's historical data.  Just keep trucking.
                 try {
                     StockPrice stockPrice = new StockPrice(  stock,
-                                                                convertYahooStringToLocalDate(onePrice.get(0),YYYY_MM_DD),
+                                                                convertYahooStringToLocalDate(onePrice.get(0)),
                                                                 BigDecimalUtil.createUSDBigDecimal(new BigDecimal(onePrice.get(4))));
                     result.add(stockPrice);
                 }
@@ -131,7 +132,7 @@ public class YahooFinance {
 
 
 
-    public static List<StockDividend> getHistoricalStockDividends(Stock stock, LocalDate fromDate, LocalDate toDate) {
+    public List<StockDividend> getHistoricalStockDividends(Stock stock, LocalDate fromDate, LocalDate toDate) {
         logger.debug("Getting dividends for {}.", stock.getTicker());
         List<StockDividend> result = new ArrayList<>();
         List<List<String>> listOfDividends = getParsedHistoricalData(HISTORICAL_DIVIDEND_URL_TEMPLATE, stock.getTicker(), fromDate, toDate, 2);
@@ -141,7 +142,7 @@ public class YahooFinance {
             // Create a SecurityDividend for everything left in the table
             
             for(List<String> oneDividend : listOfDividends) {
-                LocalDate exDividendDate =  convertYahooStringToLocalDate(oneDividend.get(0), YYYY_MM_DD);
+                LocalDate exDividendDate =  convertYahooStringToLocalDate(oneDividend.get(0));
                 BigDecimal bigDecimal = new BigDecimal(oneDividend.get(1));
                 StockDividend dividend = new StockDividend( stock, exDividendDate, BigDecimalUtil.createUSDBigDecimalDividend(bigDecimal));
                 result.add(dividend);
@@ -153,7 +154,7 @@ public class YahooFinance {
 
 
 
-    public static List<StockSplit> getHistoricalStockSplits(Stock stock, LocalDate fromDate, LocalDate toDate) {
+    public List<StockSplit> getHistoricalStockSplits(Stock stock, LocalDate fromDate, LocalDate toDate) {
         logger.debug("Getting stock splits for {}.", stock.getTicker());
         List<StockSplit> result = new ArrayList<>();
         List<List<String>> listOfStockSplits = getParsedHistoricalData(HISTORICAL_STOCK_SPLIT_URL_TEMPLATE, stock.getTicker(), fromDate, toDate, 2);
@@ -166,7 +167,7 @@ public class YahooFinance {
             for(List<String> oneStockSplit : listOfStockSplits) {
                 StockSplit stockSplit = new StockSplit();
                 stockSplit.setStock(stock);
-                stockSplit.setDate(convertYahooStringToLocalDate(oneStockSplit.get(0), YYYY_MM_DD));
+                stockSplit.setDate(convertYahooStringToLocalDate(oneStockSplit.get(0)));
                 String trimmedSplitData = oneStockSplit.get(1).trim();
                 String[] afterBefore = trimmedSplitData.split(":");
                 stockSplit.setAfterAmount(new BigDecimal(afterBefore[0]));
@@ -178,9 +179,13 @@ public class YahooFinance {
     }
 
 
+
+    /***********  Private Methods ************/
+
+
     
 
-    public static String createYahooDate(LocalDate inputDate) {
+    private String createYahooDate(LocalDate inputDate) {
         
        LocalDate beginningOfYahooTime = LocalDate.of(1970, Month.JANUARY, 1);
        long daysBetween = DAYS.between(beginningOfYahooTime, inputDate);
@@ -188,7 +193,7 @@ public class YahooFinance {
        return String.valueOf(daysBetween*86400 + 5*3600);
     }
         
-    public static String createYahooDateWithTime(LocalDate inputDate) {
+    private String createYahooDateWithTime(LocalDate inputDate) {
         
        LocalDate beginningOfYahooTime = LocalDate.of(1970, Month.JANUARY, 1);
        long daysBetween = DAYS.between(beginningOfYahooTime, inputDate);
@@ -196,22 +201,16 @@ public class YahooFinance {
        LocalDateTime now = LocalDateTime.now();
        return String.valueOf(daysBetween*86400 + now.getHour()*3600 + now.getMinute()*60 + now.getSecond());
     }
-        
 
-    
-    /***********  Private Methods ************/
-    
-    
-    
 
-    private static List<List<String>> getParsedHistoricalData(String urlTemplate, String tickerSymbol, LocalDate fromDate, LocalDate toDate, int numberOfRowsExpected) {
+    private List<List<String>> getParsedHistoricalData(String urlTemplate, String tickerSymbol, LocalDate fromDate, LocalDate toDate, int numberOfRowsExpected) {
         String completedUrl = substituteTickerAndStartEndDates(urlTemplate, tickerSymbol, fromDate, toDate);
         List<List<String>> allHistoricalData = retrieveCsvFromYahoo(completedUrl, numberOfRowsExpected);
         return allHistoricalData;
     }
 
     
-    private static String substituteTickerAndStartEndDates(String templateUrl, String tickerSymbol, LocalDate fromDate, LocalDate toDate) {
+    private String substituteTickerAndStartEndDates(String templateUrl, String tickerSymbol, LocalDate fromDate, LocalDate toDate) {
         String url = templateUrl.replace("%TICKER%", tickerSymbol);
         url = url.replace("%FROM_DATE%", createYahooDate(fromDate)); 
         url = url.replace("%TO_DATE%", createYahooDate(toDate)); 
@@ -222,7 +221,7 @@ public class YahooFinance {
         return url;
     }
     
-    private static List<List<String>> retrieveCsvFromYahoo(String url, Integer numberOfExpectedColumns) {
+    private List<List<String>> retrieveCsvFromYahoo(String url, Integer numberOfExpectedColumns) {
         int retriesToDate = 0;
         while(retriesToDate < MAXIMUM_NUMBER_OF_RETRIES) {
             try {
@@ -245,7 +244,7 @@ public class YahooFinance {
     
     
     
-    private static List<List<String>> errorProneRetrieveCsvFromYahoo(String url, Integer numberOfExpectedColumns) throws IOException {
+    private List<List<String>> errorProneRetrieveCsvFromYahoo(String url, Integer numberOfExpectedColumns) throws IOException {
         List<List<String>> results = new ArrayList<>();
         ICsvListReader listReader = null;
         try {
@@ -304,20 +303,20 @@ public class YahooFinance {
     } 
 
     
-    private static LocalDate convertYahooStringToLocalDate(String yahooDateString, DateTimeFormatter formatter) {
-        LocalDate result = null;
+    private LocalDate convertYahooStringToLocalDate(String yahooDateString) {
+        LocalDate result;
         String strippedYahooDateString = yahooDateString.trim();
         try {
-            result = LocalDate.parse(strippedYahooDateString, formatter);
+            result = LocalDate.parse(strippedYahooDateString, YYYY_MM_DD);
         }
         catch (DateTimeParseException dtpe) {
-            logger.error("The following string could not be parsed into a LocalDate using {}: {}", formatter.toString(), strippedYahooDateString);
+            logger.error("The following string could not be parsed into a LocalDate using {}: {}", YYYY_MM_DD.toString(), strippedYahooDateString);
             throw dtpe;
         }
         return result;   
     }
 
-    private static class YahooToken {
+    private class YahooToken {
         private String          crumb = null;
         private String          cookie = null;
         private LocalDateTime   tokenDateTime = null;
@@ -367,10 +366,10 @@ public class YahooFinance {
         String crumb;
     }
 
-    private static StockQueryResults getStockNameCrumbAndCookie(String tickerSymbol) {
+    private StockQueryResults getStockNameCrumbAndCookie(String tickerSymbol) {
         StockQueryResults results = new StockQueryResults();
         StringBuilder pageContent = new StringBuilder();
-        URLConnection connection = null;
+        URLConnection connection;
         try {
             String url = CURRENT_PRICE_CRUMB_AND_COOKIE_RETRIEVER_URL + tickerSymbol;
             URL request = new URL(url);
@@ -381,7 +380,7 @@ public class YahooFinance {
             connection.connect();
             HttpURLConnection httpConnection = (HttpURLConnection) connection;
             int statusCode = httpConnection.getResponseCode();
-            String localCookie = null;
+            String localCookie;
             if (statusCode == 200) {
                 localCookie = getCookie(httpConnection);
                 try (BufferedReader in = new BufferedReader(new InputStreamReader(httpConnection.getInputStream()))) {
@@ -392,7 +391,7 @@ public class YahooFinance {
                 }
             }
             else {
-                throw new IllegalStateException("A status code of " + statusCode + "was return inside YahooFinance.Token.refreshToken()");
+                throw new IllegalStateException("A status code of " + statusCode + "was return inside YahooFinanceSercie.Token.refreshToken()");
             }
 
             results.cookie = localCookie;
@@ -400,15 +399,15 @@ public class YahooFinance {
             results.stockName = getStockName(pageContent.toString(), tickerSymbol);
         }
         catch(MalformedURLException me) {
-            throw new IllegalStateException("Unexpected MalformedException was caught inside YahooFinance.Token.refreshToken()", me);
+            throw new IllegalStateException("Unexpected MalformedException was caught inside YahooFinanceService.Token.refreshToken()", me);
         }
         catch(IOException ioe) {
-            throw new IllegalStateException("Unexpected IOException was caught inside YahooFinance.Token.refreshToken()", ioe);
+            throw new IllegalStateException("Unexpected IOException was caught inside YahooFinanceService.Token.refreshToken()", ioe);
         }
         return results;
     }
 
-    private static String getCrumb(String pageContent) {
+    private String getCrumb(String pageContent) {
         int indexOfStore = pageContent.indexOf("\"CrumbStore\":{\"crumb\":\"");
         int indexOfCrumb = indexOfStore + 23;
         int indexOfTrailingQuote = pageContent.indexOf("\"", indexOfCrumb);
@@ -418,7 +417,7 @@ public class YahooFinance {
         return crumbValue;
     }
 
-    private static String getStockName(String pageContent, String tickerSymbol) {
+    private String getStockName(String pageContent, String tickerSymbol) {
         int indexOfName = pageContent.indexOf("<title>") + 7;
         int indexOfTickerName = pageContent.indexOf("("+tickerSymbol+")", indexOfName);
         if (indexOfTickerName == -1)
@@ -428,7 +427,7 @@ public class YahooFinance {
         return stockName;
     }
 
-    private static String getCookie(HttpURLConnection openConnection) {
+    private String getCookie(HttpURLConnection openConnection) {
         for (Map.Entry<String, List<String>> oneHeader : openConnection.getHeaderFields().entrySet()) {
             String headerName = oneHeader.getKey();
             if ("Set-Cookie".equalsIgnoreCase(headerName)) {

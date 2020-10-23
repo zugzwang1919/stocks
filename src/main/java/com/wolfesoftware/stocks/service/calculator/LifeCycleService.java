@@ -51,6 +51,7 @@ public class LifeCycleService {
     public LifeCycle buildStockLifeCycle(Stock stock, LocalDate requestedStartDate, LocalDate requestedEndDate,
                                                 List<StockTransaction> transactions, List<OptionTransaction> optionTransactions,
                                                 Map<Stock,List<StockDividend>> dividendCache,
+                                                Map<Stock,List<StockSplit>> stockSplitCache,
                                                 boolean includeDividends, boolean includeOptions) {
 
         // Clone the list and trim off all transactions beyond the end date
@@ -115,7 +116,7 @@ public class LifeCycleService {
     }
 
     public LifeCycle newBenchmarkBasedOnExisting(LifeCycle thatLifeCycle, Stock newStock, Map<Stock,List<StockDividend>> dividendCache,
-                                                        boolean includeDividends, boolean includeOptions) {
+                                                        boolean includeDividends) {
         LifeCycle benchmarkLifeCycle = new LifeCycle();
         benchmarkLifeCycle.setStock(newStock);
         benchmarkLifeCycle.setRequestedStartDate(thatLifeCycle.getRequestedStartDate());

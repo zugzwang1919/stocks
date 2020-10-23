@@ -1,6 +1,5 @@
 package com.wolfesoftware.stocks.service;
 
-import com.wolfesoftware.stocks.common.YahooFinance;
 import com.wolfesoftware.stocks.model.*;
 import com.wolfesoftware.stocks.repository.StockPriceRepository;
 import com.wolfesoftware.stocks.repository.StockRepository;
@@ -21,12 +20,13 @@ public class StockPriceService {
 
     @Resource
     private StockRepository stockRepository;
-
     @Resource
     private StockPriceRepository stockPriceRepository;
-
     @Resource
     private StockSplitService stockSplitService;
+    @Resource
+    private YahooFinanceService yahooFinanceService;
+
 
     private static final long DAYS_TO_STILL_BE_CONSIDERED_TIMELY = 14;
 
@@ -60,7 +60,7 @@ public class StockPriceService {
 
 
 
-    @Scheduled(cron = "0 30 16,20,23 * * *")
+    @Scheduled(cron = "0 30 16,20,23 * * *")  // 4:30, 8:30 & 11:30 every day
     @Transactional
     public void loadTodaysPrices() {
 
@@ -68,6 +68,16 @@ public class StockPriceService {
         logger.info(response.getSummary());
 
     }
+
+    @Scheduled(cron = "0 9 1 * * SAT")  // 1:09 am on Saturday
+    @Transactional
+    public void loadOrUpdateAllStockPrices() {
+
+        LoadOrUpdateResponse response = loadOrUpdateAllStockPrices(StockPrice.EARLIEST_DAILY_PRICE, LocalDate.now());
+        logger.info(response.getSummary());
+
+    }
+
 
 
     @Transactional
@@ -87,7 +97,7 @@ public class StockPriceService {
             // #2 - This stock exists & we don't have today's price in the database
             else if (mostRecentPriceDate == null || !mostRecentPriceDate.equals(today)) {
                 logger.debug("Stock price was not found in database for today's date.");
-                StockPrice todaysStockPrice = YahooFinance.getTodaysStockPrice(stock);
+                StockPrice todaysStockPrice = yahooFinanceService.getTodaysStockPrice(stock);
                 if (todaysStockPrice != null) {
                     // OK.  Here's where we do the work we want to do.
                     stockPriceRepository.persistStockPrice(todaysStockPrice);
@@ -113,11 +123,11 @@ public class StockPriceService {
     Typically used when a stock is created.  This method will retrieve and
     then persist SecurityPrices.
     */
-    public List<StockPrice> loadInitialPileOfStockPrices(Stock stock) {
+    public void loadInitialPileOfStockPrices(Stock stock) {
         LocalDate beginDate = StockPrice.EARLIEST_DAILY_PRICE;
         LocalDate today = LocalDate.now();
-        List<StockPrice> stockPrices = YahooFinance.getHistoricalStockPrices(stock, beginDate, today, null);
-        return stockPriceRepository.persistStockPrices(stockPrices);
+        List<StockPrice> stockPrices = yahooFinanceService.getHistoricalStockPrices(stock, beginDate, today, null);
+        stockPriceRepository.persistStockPrices(stockPrices);
     }
 
 
@@ -156,7 +166,7 @@ public class StockPriceService {
     private LoadOrUpdateResponse loadOrUpdateStockPrices(Stock stock, LocalDate beginDate, LocalDate endDate) {
         LocalDate augmentedBeginDate = beginDate.isBefore(StockPrice.EARLIEST_DAILY_PRICE) ? StockPrice.EARLIEST_DAILY_PRICE : beginDate;
         LoadOrUpdateResponse response = new LoadOrUpdateResponse();
-        List<StockPrice> stockPrices = YahooFinance.getHistoricalStockPrices(stock, augmentedBeginDate, endDate, null);
+        List<StockPrice> stockPrices = yahooFinanceService.getHistoricalStockPrices(stock, augmentedBeginDate, endDate, null);
         for (StockPrice sp : stockPrices) {
             Optional<StockPrice> optionalStockPrice = stockPriceRepository.retrieveByStockAndDate(stock, sp.getDate());
             if (optionalStockPrice.isEmpty()) {

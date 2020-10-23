@@ -1,6 +1,5 @@
 package com.wolfesoftware.stocks.service;
 
-import com.wolfesoftware.stocks.common.YahooFinance;
 import com.wolfesoftware.stocks.model.*;
 import com.wolfesoftware.stocks.repository.StockPriceRepository;
 import com.wolfesoftware.stocks.repository.StockRepository;
@@ -28,6 +27,8 @@ public class StockSplitService {
     @Resource
     private StockSplitRepository stockSplitRepository;
 
+    @Resource
+    private YahooFinanceService yahooFinanceService;
 
     private static Logger logger = LoggerFactory.getLogger(StockSplitService.class);
 
@@ -58,12 +59,12 @@ public class StockSplitService {
     public List<StockSplit> initialLoadOfStockSplits(Stock stock) {
         LocalDate beginDate = StockSplit.EARLIEST_STOCK_SPLIT;
         LocalDate today = LocalDate.now();
-        List<StockSplit> stockSplits = YahooFinance.getHistoricalStockSplits(stock, beginDate, today);
+        List<StockSplit> stockSplits = yahooFinanceService.getHistoricalStockSplits(stock, beginDate, today);
         return stockSplitRepository.persistStockSplits(stockSplits);
     }
 
 
-    @Scheduled(cron = "0 0 0 * * SAT")
+    @Scheduled(cron = "0 49 1 * * SAT")  // 1:49 am  on Saturday morning
     @Transactional
     public void loadOrUpdateAllStockSplits() {
 
@@ -95,7 +96,7 @@ public class StockSplitService {
 
     private LoadOrUpdateResponse loadOrUpdateStockSplitsForOneStock(Stock stock, LocalDate beginDate, LocalDate endDate) {
         LoadOrUpdateResponse result = new LoadOrUpdateResponse();
-        List<StockSplit> yahooStockSplits = YahooFinance.getHistoricalStockSplits(stock, beginDate, endDate);
+        List<StockSplit> yahooStockSplits = yahooFinanceService.getHistoricalStockSplits(stock, beginDate, endDate);
         for (StockSplit foundStockSplit : yahooStockSplits) {
             List<StockSplit> existingStockSplits = stockSplitRepository.retrieveForOneStockOnOneDate(stock, foundStockSplit.getDate());
             logger.debug("Stock split found for {} - to be compared with existing ones.", foundStockSplit.getStock().getTicker());

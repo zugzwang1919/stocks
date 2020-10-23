@@ -12,7 +12,18 @@ public interface UserBasedRepositoryForOptionTransactions extends JpaRepository<
 
     @Query("SELECT ot FROM OptionTransaction ot JOIN ot.option.stock s JOIN ot.portfolio p " +
            "WHERE s = :stock AND ot.user = :user AND ot.date >= :beginDate AND ot.date <= :endDate AND p in :portfolios")
-    List<OptionTransaction> findByUserAndStockAndDateBetweenAndPortfolioIn(@Param("user") User user, @Param("stock") Stock stock,
-                                                                           @Param("beginDate") LocalDate beginDate, @Param("endDate") LocalDate endDate,
+    List<OptionTransaction> findByUserAndStockAndDateBetweenAndPortfolioIn(@Param("user") User user,
+                                                                           @Param("stock") Stock stock,
+                                                                           @Param("beginDate") LocalDate beginDate,
+                                                                           @Param("endDate") LocalDate endDate,
                                                                            @Param("portfolios") List<Portfolio> portfolios);
+
+
+    @Query("SELECT ot FROM OptionTransaction ot JOIN ot.option.stock s JOIN ot.portfolio p " +
+           "WHERE ot.user = :user AND s in :stocks AND p in :portfolios AND ot.date <= :endDate ")
+    List<OptionTransaction> findByUserAndStockInAndPortfolioInAndDateBefore(User user,
+                                                                            List<Stock> stocks,
+                                                                            List<Portfolio> portfolios,
+                                                                            LocalDate endDate);
+
 }

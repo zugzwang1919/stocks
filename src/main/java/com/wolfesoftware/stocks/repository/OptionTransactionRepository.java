@@ -10,7 +10,10 @@ import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+
+import static java.util.stream.Collectors.groupingBy;
 
 @Repository
 public class OptionTransactionRepository extends UserBasedRepository<OptionTransaction> {
@@ -34,6 +37,22 @@ public class OptionTransactionRepository extends UserBasedRepository<OptionTrans
         User currentUser = repositoryUtil.getCurrentUser();
         return userBasedRepositoryForOptionTransactions.findByUserAndStockAndDateBetweenAndPortfolioIn(currentUser, stock, beginDate, endDate, portfolios);
     }
+
+    // Retrieve all OptionTransactions that are used by a list of Stocks and in a list of Portfolios before a specific end date
+    // And then Group the transactions into a Map by Stock
+    public Map<Stock,List<OptionTransaction>> retrieveAndGroup(List<Stock> stocks, List<Portfolio> portfolios, LocalDate endDate) {
+        List<OptionTransaction> allOptionTransactions = retrieve(stocks, portfolios, endDate);
+        return allOptionTransactions.stream().collect(groupingBy(ot -> ot.getOption().getStock()));
+    }
+
+    // Retrieve all StockTransactions that are used by a list of Stocks and in a list of Portfolios before a specific end date
+    public List<OptionTransaction> retrieve(List<Stock> stocks, List<Portfolio> portfolios, LocalDate endDate) {
+        // Get the current user
+        User currentUser = repositoryUtil.getCurrentUser();
+        // Retrieve the StockTransactions with the cloaked repo
+        return userBasedRepositoryForOptionTransactions.findByUserAndStockInAndPortfolioInAndDateBefore(currentUser, stocks, portfolios, endDate);
+    }
+
 
 
     // UPDATE

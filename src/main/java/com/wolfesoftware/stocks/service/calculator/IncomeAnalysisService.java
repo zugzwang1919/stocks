@@ -47,12 +47,13 @@ public class IncomeAnalysisService {
         List<Portfolio> portfolios = new Converter<Portfolio>().convertFromIdsToEntities(portfolioIds, portfolioRepository, "portfolio");
         List<LifeCycle> lifeCycles = new ArrayList<>();
         Map<Stock,List<StockDividend>> dividendCache =  new HashMap<>();
+        Map<Stock,List<StockSplit>> stockSplitCache =  new HashMap<>();
         IncomeAnalysisResponse incomeAnalysisResponse = new IncomeAnalysisResponse();
         IncomeAnalysisResponse.AnalysisTotals analysisTotals = incomeAnalysisResponse.getAnalysisTotals();
         stocks.forEach(s->{
             List<StockTransaction> stockTransactions = stockTransactionRepository.retrieveForOneStock(s, beginningOfTime, augmentedEndDate, portfolios);
             List<OptionTransaction> optionTransactions = optionTransactionRepository.retrieveForOneStock(s, augmentedStartDate, augmentedEndDate, portfolios);
-            LifeCycle lifeCycle = lifeCycleService.buildStockLifeCycle(s, augmentedStartDate, augmentedEndDate, stockTransactions, optionTransactions, dividendCache, includeDividends, includeOptions);
+            LifeCycle lifeCycle = lifeCycleService.buildStockLifeCycle(s, augmentedStartDate, augmentedEndDate, stockTransactions, optionTransactions, dividendCache, stockSplitCache, includeDividends, includeOptions);
             // If a LifeCycle was created
             if (lifeCycle != null) {
 
@@ -109,6 +110,8 @@ public class IncomeAnalysisService {
         return BigDecimal.ZERO;
 
     }
+
+    // FIXME: There's another one of these in BenchmarkAnalysisService
 
     private class Converter<T> {
         private List<T> convertFromIdsToEntities(List<Long> ids, UserBasedRepository userBasedRepository, String nameOfUserBasedEntity) {

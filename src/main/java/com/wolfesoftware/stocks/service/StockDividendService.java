@@ -1,6 +1,5 @@
 package com.wolfesoftware.stocks.service;
 
-import com.wolfesoftware.stocks.common.YahooFinance;
 import com.wolfesoftware.stocks.model.LoadOrUpdateResponse;
 import com.wolfesoftware.stocks.model.Stock;
 import com.wolfesoftware.stocks.model.StockDividend;
@@ -22,12 +21,13 @@ public class StockDividendService {
 
     @Resource
     private StockRepository stockRepository;
-
     @Resource
     private StockDividendRepository stockDividendRepository;
-
     @Resource
     private StockPriceRepository stockPriceRepository;
+    @Resource
+    private YahooFinanceService yahooFinanceService;
+
 
     private static Logger logger = LoggerFactory.getLogger("StockDividendService.class");
 
@@ -45,15 +45,15 @@ public class StockDividendService {
     Typically used when a stock is created.  This method will retrieve and
     then persist StockDividends.
     */
-    public List<StockDividend> initialLoadOfStockDividends(Stock stock) {
+    public void initialLoadOfStockDividends(Stock stock) {
         LocalDate beginDate = StockDividend.EARLIEST_STOCK_DIVIDEND_DATE;
         LocalDate today = LocalDate.now();
-        List<StockDividend> stockDividends = YahooFinance.getHistoricalStockDividends(stock, beginDate, today);
-        return stockDividendRepository.persistStockDividends(stockDividends);
+        List<StockDividend> stockDividends = yahooFinanceService.getHistoricalStockDividends(stock, beginDate, today);
+        stockDividendRepository.persistStockDividends(stockDividends);
     }
 
 
-    @Scheduled(cron = "0 0 0 * * SAT")
+    @Scheduled(cron = "0 29 1 * * SAT")  // 1:29 am on Saturday morning
     @Transactional
     public void loadOrUpdateAllDividends() {
 
@@ -82,7 +82,7 @@ public class StockDividendService {
 
     private LoadOrUpdateResponse loadOrUpdateDividendsForOneStock(Stock stock, LocalDate beginDate, LocalDate endDate) {
         LoadOrUpdateResponse result = new LoadOrUpdateResponse();
-        List<StockDividend> yahooStockDividends = YahooFinance.getHistoricalStockDividends(stock, beginDate, endDate);
+        List<StockDividend> yahooStockDividends = yahooFinanceService.getHistoricalStockDividends(stock, beginDate, endDate);
         for (StockDividend foundStockDividend : yahooStockDividends) {
             List<StockDividend> existingStockDividends = stockDividendRepository.retrieveForOneStockOnOneDate(stock, foundStockDividend.getExDividendDate());
             if (existingStockDividends.size() > 1) {

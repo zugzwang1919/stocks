@@ -62,7 +62,8 @@ public class RepositoryUtil {
         String userName = (principal instanceof UserDetails) ?
                 ((UserDetails) principal).getUsername() :
                 principal.toString();
-
+        // FIXME:  I BELIEVE that we should not go to the database for this. We should keep
+        // FIXME:  everything required to build a user in the "authentication" token
         Optional<User> ou = userRepository.findUserByUserName(userName);
         if (ou.isEmpty()) {
             throw new IllegalActionException("No Current User could be identified.");

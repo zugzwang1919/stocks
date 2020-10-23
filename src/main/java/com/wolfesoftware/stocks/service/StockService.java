@@ -1,7 +1,6 @@
 package com.wolfesoftware.stocks.service;
 
 import com.wolfesoftware.stocks.common.StringUtil;
-import com.wolfesoftware.stocks.common.YahooFinance;
 import com.wolfesoftware.stocks.exception.DuplicateException;
 import com.wolfesoftware.stocks.exception.IllegalActionException;
 import com.wolfesoftware.stocks.model.Stock;
@@ -27,6 +26,9 @@ public class StockService extends UserBasedService<Stock> {
 
     @Resource
     private StockDividendService stockDividendService;
+
+    @Resource
+    private YahooFinanceService yahooFinanceService;
 
 
     // Methods required for the Base Class (UserBasedService) to work
@@ -73,7 +75,7 @@ public class StockService extends UserBasedService<Stock> {
 
 
     public Stock suggestName(String tickerSymbol) {
-        String name = YahooFinance.getTickersStockName(tickerSymbol);
+        String name = yahooFinanceService.getTickersStockName(tickerSymbol);
         Stock returnedStock = new Stock();
         returnedStock.setTicker(tickerSymbol);
         returnedStock.setName(name);
@@ -114,7 +116,7 @@ public class StockService extends UserBasedService<Stock> {
     }
 
     private void validateYahooRecognizedTicker(String ticker) {
-        if (!YahooFinance.isTickerValid(ticker)) {
+        if (!yahooFinanceService.isTickerValid(ticker)) {
             throw new IllegalActionException("Invalid ticker symbol.");
         }
     }

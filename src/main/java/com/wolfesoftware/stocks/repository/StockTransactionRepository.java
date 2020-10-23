@@ -14,7 +14,10 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+
+import static java.util.stream.Collectors.groupingBy;
 
 @Repository
 public class StockTransactionRepository extends UserBasedRepository<StockTransaction> {
@@ -41,6 +44,33 @@ public class StockTransactionRepository extends UserBasedRepository<StockTransac
         return userBasedRepositoryForStockTransactions.findByUserAndStockAndDateBetweenAndPortfolioIn(currentUser, stock, beginDate, endDate, portfolios);
     }
 
+    // Retrieve all StockTransactions that are used in the list of portfolios
+    public List<StockTransaction> retrieve(List<Portfolio> portfolios) {
+        // Just in case the caller provided no portfolios return an empty list.
+        // Hibernate does not like providing a list that is empty
+        if (portfolios == null || portfolios.isEmpty()) {
+            return new ArrayList<>();
+        }
+        // Get the current user
+        User currentUser = repositoryUtil.getCurrentUser();
+        // Retrieve the StockTransactions with the cloaked repo
+        return userBasedRepositoryForStockTransactions.findByUserAndPortfolioIn(currentUser, portfolios);
+    }
+
+    // Retrieve all StockTransactions that are used by a list of Stocks and in a list of Portfolios before a specific end date
+    // And then Group the transactions into a Map by Stock
+    public Map<Stock,List<StockTransaction>> retrieveAndGroup(List<Stock> stocks, List<Portfolio> portfolios, LocalDate endDate) {
+        List<StockTransaction> allTransactions = retrieve(stocks, portfolios, endDate);
+        return allTransactions.stream().collect(groupingBy(StockTransaction::getStock));
+    }
+
+    // Retrieve all StockTransactions that are used by a list of Stocks and in a list of Portfolios before a specific end date
+    public List<StockTransaction> retrieve(List<Stock> stocks, List<Portfolio> portfolios, LocalDate endDate) {
+        // Get the current user
+        User currentUser = repositoryUtil.getCurrentUser();
+        // Retrieve the StockTransactions with the cloaked repo
+        return userBasedRepositoryForStockTransactions.findByUserAndStockInAndPortfolioInAndDateBefore(currentUser, stocks, portfolios, endDate);
+    }
 
 
     // UPDATE
@@ -73,17 +103,6 @@ public class StockTransactionRepository extends UserBasedRepository<StockTransac
     }
 
 
-    // Retrieve all StockTransactions that are used in the list of portfolios
-    public List<StockTransaction> retrieve(List<Portfolio> portfolios) {
-        // Just in case the caller provided no portfolios return an empty list.
-        // Hibernate does not like providing a list that is empty
-        if (portfolios == null || portfolios.isEmpty()) {
-            return new ArrayList<>();
-        }
-        // Get the current user
-        User currentUser = repositoryUtil.getCurrentUser();
-        // Retrieve the StockTransactions with the cloaked repo
-        return userBasedRepositoryForStockTransactions.findByUserAndPortfolioIn(currentUser, portfolios);
-    }
+
 
 }
