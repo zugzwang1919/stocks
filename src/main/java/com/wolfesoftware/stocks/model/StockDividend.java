@@ -21,7 +21,7 @@ public class StockDividend extends PersistentEntity  {
     @Column(name = "dividendamount")
     private BigDecimal  dividendAmount;
 
-    public static final LocalDate EARLIEST_STOCK_DIVIDEND_DATE = LocalDate.of(2011, Month.JANUARY, 1); // Jan 1, 2000
+    public static final LocalDate EARLIEST_STOCK_DIVIDEND_DATE = LocalDate.of(2008, Month.JANUARY, 1); // Jan 1, 2000
 
 
     // Constructors

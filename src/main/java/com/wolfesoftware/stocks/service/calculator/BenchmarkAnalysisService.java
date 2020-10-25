@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import javax.swing.text.DateFormatter;
 import java.math.BigDecimal;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
@@ -45,16 +46,19 @@ public class BenchmarkAnalysisService {
     @Transactional
     public BenchmarkAnalysisResponse analyze(LocalDate startDate, LocalDate endDate, List<Long> portfolioIds, List<Long> stockIds, List<Long> benchmarkIds,
                                              boolean includeDividends, boolean includeCallsPuts) {
+        LocalDate beginningOfTime = LocalDate.of(1900,1,1);
+        LocalDate augmentedStartDate = startDate == null ? beginningOfTime : startDate;
+        LocalDate augmentedEndDate = endDate == null ? LocalDate.now() : endDate;
 
         List<Stock> stocks = new Converter<Stock>().convertFromIdsToEntities(stockIds, stockRepository, "stock");
         List<Portfolio> portfolios = new Converter<Portfolio>().convertFromIdsToEntities(portfolioIds, portfolioRepository, "portfolio");
         List<Stock> benchmarks = new Converter<Stock>().convertFromIdsToEntities(benchmarkIds, stockRepository, "stock");
-        Map<Stock,List<StockTransaction>> allStockTransactions = stockTransactionRepository.retrieveAndGroup(stocks, portfolios, endDate);
-        Map<Stock,List<OptionTransaction>> allOptionTransactions = optionTransactionRepository.retrieveAndGroup(stocks, portfolios, endDate);
+        Map<Stock,List<StockTransaction>> allStockTransactions = stockTransactionRepository.retrieveAndGroup(stocks, portfolios, augmentedEndDate);
+        Map<Stock,List<OptionTransaction>> allOptionTransactions = optionTransactionRepository.retrieveAndGroup(stocks, portfolios, augmentedEndDate);
         Map<Stock,List<StockDividend>> dividendCache = new HashMap<>();
         Map<Stock,List<StockSplit>> stockSplitCache = new HashMap<>();
 
-        BenchmarkAnalysisResponse.CalculatorResults calculatorResults = calculateBasicResults(startDate, endDate, allStockTransactions, allOptionTransactions, benchmarks,
+        BenchmarkAnalysisResponse.CalculatorResults calculatorResults = calculateBasicResults(augmentedStartDate, augmentedEndDate, allStockTransactions, allOptionTransactions, benchmarks,
                                                                                               dividendCache, stockSplitCache, includeDividends, includeCallsPuts);
         if (calculatorResults == null)
             return null;
@@ -75,17 +79,25 @@ public class BenchmarkAnalysisService {
         List<SingleSecurityResult> detailedResults = new ArrayList<>();
         LocalDate earliestBeginDate = null;
         for (Stock oneStock: allStockTransactions.keySet()) {
-            List<StockTransaction> stockTransactionsForOneStock = allStockTransactions.get(oneStock);
-            List<OptionTransaction> optionTransactionsForOneStock = allOptionTransactions.get(oneStock);
-            SingleSecurityResult ssr = buildSingleSecurityResult(oneStock, stockTransactionsForOneStock, optionTransactionsForOneStock,
-                    benchmarks, dividendCache, stockSplitCache, beginDate, endDate, includeDividends, includeCallPuts);
-            if (ssr != null) {
-                detailedResults.add(ssr);
-                calculatorResults.getAccumulatedResults().accumulateResults(ssr);
-                LocalDate ssrBeginDate = ssr.getBaseLifeCycle().getOpeningPosition().getDate();
-                if (earliestBeginDate == null || ssrBeginDate.isBefore(earliestBeginDate)) {
-                    earliestBeginDate = ssrBeginDate;
+            try {
+                List<StockTransaction> stockTransactionsForOneStock = allStockTransactions.get(oneStock);
+                List<OptionTransaction> optionTransactionsForOneStock = allOptionTransactions.get(oneStock);
+                SingleSecurityResult ssr = buildSingleSecurityResult(oneStock, stockTransactionsForOneStock, optionTransactionsForOneStock,
+                        benchmarks, dividendCache, stockSplitCache, beginDate, endDate, includeDividends, includeCallPuts);
+                if (ssr != null) {
+                    detailedResults.add(ssr);
+                    calculatorResults.getAccumulatedResults().accumulateResults(ssr);
+                    LocalDate ssrBeginDate = ssr.getBaseLifeCycle().getOpeningPosition().getDate();
+                    if (earliestBeginDate == null || ssrBeginDate.isBefore(earliestBeginDate)) {
+                        earliestBeginDate = ssrBeginDate;
+                    }
                 }
+            }
+            catch (Exception e) {
+                DateTimeFormatter dtf = DateTimeFormatter.ISO_LOCAL_DATE;
+                String newMessage = "While calculating results for " + oneStock.getTicker() +  " from " +
+                                    dtf.format(beginDate) + " to " + dtf.format(endDate) + " a severe error occurred.  Details follow: " + e.toString();
+                throw new RuntimeException(newMessage, e);
             }
         }
         if (detailedResults.isEmpty())

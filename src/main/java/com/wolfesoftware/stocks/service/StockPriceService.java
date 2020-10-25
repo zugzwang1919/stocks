@@ -12,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
 
@@ -36,8 +37,17 @@ public class StockPriceService {
 
     public BigDecimal retrieveClosingPrice(Stock stock, LocalDate requestedDate) {
         StockPrice dbStockPrice = retrieveDbClosingPrice(stock, requestedDate);
-        BigDecimal actualPriceOnDate = stockSplitService.stockSplitFactorSince(stock, requestedDate).
-                                        multiply(dbStockPrice.getPrice());
+        BigDecimal actualPriceOnDate;
+        try {
+             actualPriceOnDate =    stockSplitService.stockSplitFactorSince(stock, requestedDate).
+                                    multiply(dbStockPrice.getPrice());
+        }
+        catch (Exception e) {
+            DateTimeFormatter dtf = DateTimeFormatter.ISO_LOCAL_DATE;
+            String newMessage = "Exception occurred when retrieving closing price for " + stock.getTicker() +
+                                " on " +  dtf.format(requestedDate);
+            throw new RuntimeException(newMessage, e);
+        }
         return actualPriceOnDate;
     }
 

@@ -24,7 +24,7 @@ public class StockSplit extends PersistentEntity {
     private static final long serialVersionUID = 1L;
 
 
-    public static final LocalDate EARLIEST_STOCK_SPLIT = LocalDate.of(2011, Month.JANUARY, 1);  // Jan 1, 1980
+    public static final LocalDate EARLIEST_STOCK_SPLIT = LocalDate.of(2008, Month.JANUARY, 1);  // Jan 1, 1980
 
 
     // Constructors
