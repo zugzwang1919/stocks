@@ -51,7 +51,7 @@ public class LifeCycleService {
     public LifeCycle buildStockLifeCycle(Stock stock, LocalDate requestedStartDate, LocalDate requestedEndDate,
                                                 List<StockTransaction> transactions, List<OptionTransaction> optionTransactions,
                                                 Map<Stock,List<StockDividend>> dividendCache,
-                                                Map<Stock,List<StockSplit>> stockSplitCache,
+                                                StockSplitCache stockSplitCache,
                                                 boolean includeDividends, boolean includeOptions) {
 
         // Clone the list and trim off all transactions beyond the end date
@@ -63,7 +63,7 @@ public class LifeCycleService {
         }
         // Try to create the opening position
         LifeCycle lifeCycle = new LifeCycle();
-        lifeCycle.setOpeningPosition(openingPositionService.buildOpeningPosition(clonedStockTransactions, requestedStartDate, requestedEndDate));
+        lifeCycle.setOpeningPosition(openingPositionService.buildOpeningPosition(clonedStockTransactions, stockSplitCache, requestedStartDate, requestedEndDate));
         lifeCycle.setStock(stock);
         lifeCycle.setRequestedStartDate(requestedStartDate);
         lifeCycle.setRequestedEndDate(requestedEndDate);
@@ -73,7 +73,7 @@ public class LifeCycleService {
                 clonedStockTransactions.remove(0);
             }
             // Create closing position
-            ClosingPosition closingPosition = closingPositionService.createClosingPosition(lifeCycle.getOpeningPosition(), clonedStockTransactions, requestedEndDate);
+            ClosingPosition closingPosition = closingPositionService.createClosingPosition(lifeCycle.getOpeningPosition(), clonedStockTransactions, requestedEndDate, stockSplitCache);
             lifeCycle.setClosingPosition(closingPosition);
             // Remove transactions associated with the closing position
             LocalDate lastDateForIntervening = closingPosition.isPositionActiveAtEndDate() ? closingPosition.getDate() : closingPosition.getDate().minusDays(1);
@@ -84,7 +84,7 @@ public class LifeCycleService {
 
             // Handle dividends
             if (includeDividends)
-                populateDividendInfo(lifeCycle, dividendCache);
+                populateDividendInfo(lifeCycle, dividendCache, stockSplitCache);
         }
         // Handle Options
         if (includeOptions) {
@@ -115,19 +115,20 @@ public class LifeCycleService {
         return lifeCycle;
     }
 
-    public LifeCycle newBenchmarkBasedOnExisting(LifeCycle thatLifeCycle, Stock newStock, Map<Stock,List<StockDividend>> dividendCache,
-                                                        boolean includeDividends) {
+    public LifeCycle newBenchmarkBasedOnExisting(LifeCycle thatLifeCycle, Stock newStock,
+                                                 Map<Stock,List<StockDividend>> dividendCache, StockSplitCache stockSplitCache,
+                                                 boolean includeDividends) {
         LifeCycle benchmarkLifeCycle = new LifeCycle();
         benchmarkLifeCycle.setStock(newStock);
         benchmarkLifeCycle.setRequestedStartDate(thatLifeCycle.getRequestedStartDate());
         benchmarkLifeCycle.setRequestedEndDate(thatLifeCycle.getRequestedEndDate());
-        benchmarkLifeCycle.setOpeningPosition(new OpeningPosition(thatLifeCycle.getOpeningPosition(), newStock));
-        benchmarkLifeCycle.setInterveningStockTransactions(createInterveningStockTransactionsBasedOnExisting(benchmarkLifeCycle.getOpeningPosition(), thatLifeCycle.getOpeningPosition(), thatLifeCycle.getInterveningStockTransactions()));
-        benchmarkLifeCycle.setClosingPosition(closingPositionService.createClosingPosition(benchmarkLifeCycle.getOpeningPosition(), benchmarkLifeCycle.getInterveningStockTransactions(), thatLifeCycle.getClosingPosition().getDate()));
+        benchmarkLifeCycle.setOpeningPosition(new OpeningPosition(thatLifeCycle.getOpeningPosition(), newStock, stockSplitCache));
+        benchmarkLifeCycle.setInterveningStockTransactions(createInterveningStockTransactionsBasedOnExisting(benchmarkLifeCycle.getOpeningPosition(), thatLifeCycle.getOpeningPosition(), thatLifeCycle.getInterveningStockTransactions(), stockSplitCache));
+        benchmarkLifeCycle.setClosingPosition(closingPositionService.createClosingPosition(benchmarkLifeCycle.getOpeningPosition(), benchmarkLifeCycle.getInterveningStockTransactions(), thatLifeCycle.getClosingPosition().getDate(), stockSplitCache));
 
         // Handle dividends
         if (includeDividends)
-            populateDividendInfo(benchmarkLifeCycle, dividendCache);
+            populateDividendInfo(benchmarkLifeCycle, dividendCache, stockSplitCache);
 
         // Handle Calls and Puts
         // Note: For the Benchmark - Covered Calls and Naked Puts are not relevant so stick with the default values of BigDecimal.ZERO
@@ -197,7 +198,7 @@ public class LifeCycleService {
         lifeCycle.setOptionExposureToCallsAtRequestedEndDate(exposureToCallsAtRequestedEndDate);
     }
 
-    private void populateDividendInfo(LifeCycle lifeCycle, Map<Stock,List<StockDividend>> dividendCache) {
+    private void populateDividendInfo(LifeCycle lifeCycle, Map<Stock,List<StockDividend>> dividendCache, StockSplitCache stockSplitCache) {
 
         OpeningPosition openingPosition = lifeCycle.getOpeningPosition();
         ClosingPosition closingPosition = lifeCycle.getClosingPosition();
@@ -206,7 +207,7 @@ public class LifeCycleService {
         logger.debug("Closing position -  {}", closingPosition);
         BigDecimal accumulatedDividends = BigDecimal.ZERO;
         List<StockDividend> dividends = retrieveDividends(openingPosition.getStock(), dividendCache);
-        List<StockSplit> stockSplits = stockSplitService.retrieveAllForOneStock(lifeCycle.getStock());
+        List<StockSplit> stockSplits = stockSplitCache.getAllStockSplits(lifeCycle.getStock());
         for(StockDividend dividend : dividends) {
             LocalDate rightToDividendDate = dividend.getExDividendDate().minusDays(1);
             // This is a little yucky.  The closing position is created by either a complete sale of the position (in which case the owner IS NOT due the dividend)
@@ -214,7 +215,11 @@ public class LifeCycleService {
             // the dividend for someone that sells on the "rightToDividendDate".  If the user specifies the end date of the calculation to be the "rightToDividendDate",
             // the dividend will (incorrectly) not be included in the calculation.
             if (!rightToDividendDate.isBefore(openingPosition.getDate()) && closingPosition.getDate().isAfter(rightToDividendDate)) {
-                Position position = positionService.createPreciseNonValuedPositionBetweenPositions(openingPosition, closingPosition, lifeCycle.getInterveningStockTransactions(), rightToDividendDate);
+                Position position = positionService.createPreciseNonValuedPositionBetweenPositions( openingPosition,
+                                                                                                    closingPosition,
+                                                                                                    lifeCycle.getInterveningStockTransactions(),
+                                                                                                    rightToDividendDate,
+                                                                                                    stockSplitCache);
                 logger.debug("PositionService size used for dividend calculation = {}", position.getSize());
                 // If there was a time in the lifecycle when there were no shares of stock, don't create a DividendEvent
                 if (position.getSize().compareTo(BigDecimal.ZERO) > 0) {
@@ -414,7 +419,14 @@ public class LifeCycleService {
         return dividends;
     }
 
-    private  List<StockTransaction> createInterveningStockTransactionsBasedOnExisting(OpeningPosition ourOpeningPosition, OpeningPosition existingOpeningPosition, List<StockTransaction> existingInterveningStockTransactions) {
+
+
+
+
+    private  List<StockTransaction> createInterveningStockTransactionsBasedOnExisting(OpeningPosition ourOpeningPosition,
+                                                                                      OpeningPosition existingOpeningPosition,
+                                                                                      List<StockTransaction> existingInterveningStockTransactions,
+                                                                                      StockSplitCache stockSplitCache ) {
         List<StockTransaction> ourInterveningStockTransactions = new ArrayList<>();
         BigDecimal existingReferencePositionSize = existingOpeningPosition.getSize();
         BigDecimal ourReferencePositionSize = ourOpeningPosition.getSize();
@@ -427,7 +439,7 @@ public class LifeCycleService {
             // Mimic BUYs in dollar amounts
             if (newInterveningStockTransaction.getActivity().equals(StockTransaction.Activity.BUY)) {
                 newInterveningStockTransaction.setAmount(existingStockTransaction.getAmount());
-                BigDecimal price = stockPriceService.retrieveClosingPrice(newInterveningStockTransaction.getStock(), newInterveningStockTransaction.getDate());
+                BigDecimal price = stockPriceService.retrieveClosingPrice(newInterveningStockTransaction.getStock(), newInterveningStockTransaction.getDate(), stockSplitCache);
                 BigDecimal size = newInterveningStockTransaction.getAmount().divide(price, 3, RoundingMode.HALF_EVEN);
                 newInterveningStockTransaction.setTradeSize(size);
                 existingReferencePositionSize = existingReferencePositionSize.add(existingStockTransaction.getTradeSize());
@@ -437,12 +449,15 @@ public class LifeCycleService {
             else {
                 // Mimic Sells as a percentage of the existing position
                 if (existingReferencePositionSize.compareTo(BigDecimal.ZERO) != 0) {
-                    Position existingPosition = positionService.createPreciseNonValuedPositionAfterOpeningPosition(existingOpeningPosition, existingInterveningStockTransactions, existingStockTransaction.getDate());
+                    Position existingPosition = positionService.createPreciseNonValuedPositionAfterOpeningPosition( existingOpeningPosition,
+                                                                                                                    existingInterveningStockTransactions,
+                                                                                                                    existingStockTransaction.getDate(),
+                                                                                                                    stockSplitCache);
                     BigDecimal percentageOfReferencePosition = existingPosition.getSize().divide(existingReferencePositionSize,3,RoundingMode.HALF_EVEN);
                     BigDecimal desiredSizeOfOurNewPosition = ourReferencePositionSize.multiply(percentageOfReferencePosition, MathContext.UNLIMITED);
                     BigDecimal transactionSize = desiredSizeOfOurNewPosition.subtract(ourReferencePositionSize);
                     newInterveningStockTransaction.setTradeSize(transactionSize.abs());
-                    BigDecimal price = stockPriceService.retrieveClosingPrice(newInterveningStockTransaction.getStock(), newInterveningStockTransaction.getDate());
+                    BigDecimal price = stockPriceService.retrieveClosingPrice(newInterveningStockTransaction.getStock(), newInterveningStockTransaction.getDate(), stockSplitCache);
                     BigDecimal value = newInterveningStockTransaction.getTradeSize().multiply(price);
                     newInterveningStockTransaction.setAmount(value);
                     existingReferencePositionSize = existingPosition.getSize();
@@ -454,7 +469,7 @@ public class LifeCycleService {
                 // results in a divide by zero.  Oops.  We need a different approach that is similar to what takes place above when buying.
                 else {
                     newInterveningStockTransaction.setAmount(existingStockTransaction.getAmount());
-                    BigDecimal price = stockPriceService.retrieveClosingPrice(newInterveningStockTransaction.getStock(), newInterveningStockTransaction.getDate());
+                    BigDecimal price = stockPriceService.retrieveClosingPrice(newInterveningStockTransaction.getStock(), newInterveningStockTransaction.getDate(), stockSplitCache);
                     BigDecimal size = newInterveningStockTransaction.getAmount().divide(price, 3, RoundingMode.HALF_EVEN);
                     newInterveningStockTransaction.setTradeSize(size);
                     existingReferencePositionSize = existingReferencePositionSize.subtract(existingStockTransaction.getTradeSize());

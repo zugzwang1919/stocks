@@ -1,14 +1,17 @@
 package com.wolfesoftware.stocks.service.calculator;
 
+import com.wolfesoftware.stocks.model.StockSplitCache;
 import com.wolfesoftware.stocks.model.StockTransaction;
 import com.wolfesoftware.stocks.model.calculator.ClosingPosition;
 import com.wolfesoftware.stocks.model.calculator.OpeningPosition;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StopWatch;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 import static com.wolfesoftware.stocks.model.StockTransaction.Activity.BUY;
@@ -17,16 +20,24 @@ import static com.wolfesoftware.stocks.model.StockTransaction.Activity.BUY;
 @Service
 public class ClosingPositionService extends PositionService {
 
-    private static final Logger logger = LoggerFactory.getLogger(PositionService.class);
+    private static final Logger logger = LoggerFactory.getLogger(ClosingPositionService.class);
+    private static final DateTimeFormatter dtf = DateTimeFormatter.ISO_LOCAL_DATE;
 
-    public ClosingPosition createClosingPosition(OpeningPosition openingPosition, List<StockTransaction> stockTransactions, LocalDate endDate) {
+    public ClosingPosition createClosingPosition(OpeningPosition openingPosition, List<StockTransaction> stockTransactions, LocalDate endDate, StockSplitCache stockSplitCache) {
 
+        String debugString = "Creating Closing Position for " + openingPosition.getStock().getTicker() + " " + dtf.format(endDate);
+        logger.debug("STARTING - " + debugString);
+        StopWatch stopWatch = new StopWatch(debugString);
+        stopWatch.start("Creating Closing Position - Calculating size");
         ClosingPosition closingPosition = new ClosingPosition(openingPosition.getStock(), endDate);
-        closingPosition.setSize(adjustedSize(openingPosition.getStock(), openingPosition.getDate(), openingPosition.getSize(), endDate));
+        closingPosition.setSize(adjustedSize(openingPosition.getStock(), stockSplitCache, openingPosition.getDate(), openingPosition.getSize(), endDate));
 
         for (StockTransaction stockTransaction : stockTransactions ) {
-            addStockTransactionSizeToPosition(endDate, closingPosition, stockTransaction);
+            addStockTransactionSizeToPosition(endDate, closingPosition, stockTransaction, stockSplitCache);
         }
+        stopWatch.stop();
+        logger.debug("Transitioning to calculating other values");
+        stopWatch.start("Creating Closing Position - Calculating other values");
         closingPosition.setPositionActiveAtEndDate(true);
         // If the position was closed prior to the end date, there's a little
         // bit of special processing
@@ -63,9 +74,11 @@ public class ClosingPositionService extends PositionService {
             closingPosition.setValue(lastDayAggregatedTradeAmount);
         }
         // If the position is still open on the end date, just calculate the position's value
-        else
-            calculateValue(closingPosition);
-        logger.debug("Closing PositionService: " + closingPosition);
+        else {
+            calculateValue(closingPosition, stockSplitCache);
+        }
+        stopWatch.stop();
+        logger.debug(stopWatch.prettyPrint());
         return closingPosition;
     }
 

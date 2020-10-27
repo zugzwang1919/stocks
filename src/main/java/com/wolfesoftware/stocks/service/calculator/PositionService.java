@@ -3,6 +3,7 @@ package com.wolfesoftware.stocks.service.calculator;
 import com.wolfesoftware.stocks.common.BridgeToSpringBean;
 import com.wolfesoftware.stocks.model.Stock;
 import com.wolfesoftware.stocks.model.StockSplit;
+import com.wolfesoftware.stocks.model.StockSplitCache;
 import com.wolfesoftware.stocks.model.StockTransaction;
 import com.wolfesoftware.stocks.model.calculator.Position;
 import com.wolfesoftware.stocks.repository.StockSplitRepository;
@@ -26,15 +27,15 @@ public class PositionService {
 
 
     public Position createPreciseNonValuedPositionAfterOpeningPosition(Position openingPosition,
-                                                                       List<StockTransaction> interveningTransactions, LocalDate preciseDate) {
+                                                                       List<StockTransaction> interveningTransactions, LocalDate preciseDate, StockSplitCache stockSplitCache) {
         List<StockTransaction> clonedList = new ArrayList<>(interveningTransactions);
         clonedList.sort(new StockTransaction.StockTransactionComparator(StockTransaction.SortBy.DATE));
         Position newPosition = new Position(openingPosition);
-        newPosition.setSize(adjustedSize(openingPosition.getStock(), openingPosition.getDate(), openingPosition.getSize(), preciseDate));
+        newPosition.setSize(adjustedSize(openingPosition.getStock(), stockSplitCache, openingPosition.getDate(), openingPosition.getSize(), preciseDate));
         newPosition.setDate(preciseDate);
         for( StockTransaction transaction : clonedList ) {
             if (!transaction.getDate().isAfter(preciseDate)) {
-                newPosition = addStockTransactionSizeToPosition(preciseDate, newPosition, transaction);
+                newPosition = addStockTransactionSizeToPosition(preciseDate, newPosition, transaction, stockSplitCache);
             }
             else {
                 break;
@@ -44,23 +45,25 @@ public class PositionService {
     }
 
     public Position createPreciseNonValuedPositionBetweenPositions(Position openingPosition, Position closingPosition,
-                                                                                 List<StockTransaction> interveningTransactions, LocalDate preciseDate ) {
+                                                                   List<StockTransaction> interveningTransactions,
+                                                                   LocalDate preciseDate,
+                                                                   StockSplitCache stockSplitCache ) {
         if (preciseDate.isBefore(openingPosition.getDate()) || preciseDate.isAfter(closingPosition.getDate()))
             throw new IllegalStateException("An unexpected date was provided while trying to create a position");
         if (openingPosition.getDate().equals(preciseDate))
             return openingPosition;
         if (closingPosition.getDate().equals(preciseDate))
             return closingPosition;
-        return createPreciseNonValuedPositionAfterOpeningPosition(openingPosition, interveningTransactions, preciseDate);
+        return createPreciseNonValuedPositionAfterOpeningPosition(openingPosition, interveningTransactions, preciseDate, stockSplitCache);
     }
 
 
 
-    protected Position addStockTransactionSizeToPosition(LocalDate date, Position position, StockTransaction transaction) {
+    protected Position addStockTransactionSizeToPosition(LocalDate date, Position position, StockTransaction transaction, StockSplitCache stockSplitCache) {
         // Set most values in the returned position
         Position returnedPosition = position == null ? new Position(transaction.getStock(), date) : position;
         // Set size and value attributes in the returned position
-        BigDecimal adjustedSize = adjustedSize(transaction.getStock(), transaction.getDate(), transaction.getTradeSize(), date);
+        BigDecimal adjustedSize = adjustedSize(transaction.getStock(), stockSplitCache, transaction.getDate(), transaction.getTradeSize(), date);
         if (transaction.getActivity().equals(StockTransaction.Activity.BUY)) {
             returnedPosition.setSize(returnedPosition.getSize().add(adjustedSize));
             returnedPosition.setValue(returnedPosition.getValue().add(transaction.getAmount()));
@@ -87,10 +90,9 @@ public class PositionService {
     }
     */
 
-    protected BigDecimal adjustedSize(Stock stock, LocalDate originalDate, BigDecimal originalSize, LocalDate dateInQuestion) {
+    protected BigDecimal adjustedSize(Stock stock, StockSplitCache stockSplitCache, LocalDate originalDate, BigDecimal originalSize, LocalDate dateInQuestion) {
         BigDecimal adjustedSize = originalSize;
-        StockSplitRepository stockSplitRepository = BridgeToSpringBean.getBean(StockSplitRepository.class);
-        List<StockSplit> stockSplits = stockSplitRepository.retrieveForOneStockBetweenDates(stock, originalDate, dateInQuestion);
+        List<StockSplit> stockSplits = stockSplitCache.getStockSplitsBetweenDates(stock, originalDate, dateInQuestion);
         for(StockSplit ss : stockSplits ) {
             adjustedSize =  adjustedSize.multiply(ss.getAfterAmount()).divide(ss.getBeforeAmount(), RoundingMode.HALF_EVEN);
         }
@@ -98,10 +100,10 @@ public class PositionService {
     }
 
 
-    protected  void calculateValue(Position position) {
+    protected  void calculateValue(Position position, StockSplitCache stockSplitCache) {
         if (position != null) {
             StockPriceService stockPriceService = BridgeToSpringBean.getBean(StockPriceService.class);
-            BigDecimal price = stockPriceService.retrieveClosingPrice(position.getStock(), position.getDate());
+            BigDecimal price = stockPriceService.retrieveClosingPrice(position.getStock(), position.getDate(), stockSplitCache);
             position.setValue( position.getSize().multiply(price, MathContext.UNLIMITED));
         }
     }

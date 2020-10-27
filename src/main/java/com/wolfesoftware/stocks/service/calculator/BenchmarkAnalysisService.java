@@ -15,6 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StopWatch;
 
 import javax.annotation.Resource;
 import javax.swing.text.DateFormatter;
@@ -56,7 +57,7 @@ public class BenchmarkAnalysisService {
         Map<Stock,List<StockTransaction>> allStockTransactions = stockTransactionRepository.retrieveAndGroup(stocks, portfolios, augmentedEndDate);
         Map<Stock,List<OptionTransaction>> allOptionTransactions = optionTransactionRepository.retrieveAndGroup(stocks, portfolios, augmentedEndDate);
         Map<Stock,List<StockDividend>> dividendCache = new HashMap<>();
-        Map<Stock,List<StockSplit>> stockSplitCache = new HashMap<>();
+        StockSplitCache stockSplitCache = new StockSplitCache();
 
         BenchmarkAnalysisResponse.CalculatorResults calculatorResults = calculateBasicResults(augmentedStartDate, augmentedEndDate, allStockTransactions, allOptionTransactions, benchmarks,
                                                                                               dividendCache, stockSplitCache, includeDividends, includeCallsPuts);
@@ -73,7 +74,7 @@ public class BenchmarkAnalysisService {
                                                     Map<Stock, List<OptionTransaction>> allOptionTransactions,
                                                     List<Stock> benchmarks,
                                                     Map<Stock,List<StockDividend>> dividendCache,
-                                                    Map<Stock,List<StockSplit>> stockSplitCache,
+                                                    StockSplitCache stockSplitCache,
                                                     boolean includeDividends, boolean includeCallPuts) {
         CalculatorResults calculatorResults = new CalculatorResults(benchmarks);
         List<SingleSecurityResult> detailedResults = new ArrayList<>();
@@ -111,9 +112,13 @@ public class BenchmarkAnalysisService {
 
     private SingleSecurityResult buildSingleSecurityResult( Stock stock, List<StockTransaction> transactions, List<OptionTransaction> optionTransactions,
                                                             List<Stock> benchmarks,
-                                                            Map<Stock,List<StockDividend>> dividendCache, Map<Stock,List<StockSplit>> stockSplitCache,
+                                                            Map<Stock,List<StockDividend>> dividendCache, StockSplitCache stockSplitCache,
                                                             LocalDate beginDate, LocalDate endDate,
                                                             boolean includeDividends, boolean includeCallPuts ) {
+        String debugString = "Building Single Security Result for " + stock.getTicker();
+        StopWatch stopWatch = new StopWatch(debugString);
+        logger.debug(debugString);
+        stopWatch.start("Building Single Security Result - Building LifeCycle for Stock");
         SingleSecurityResult ssr = new SingleSecurityResult();
         LifeCycle lifeCycle = lifeCycleService.buildStockLifeCycle(stock, beginDate, endDate, transactions, optionTransactions, dividendCache, stockSplitCache, includeDividends, includeCallPuts);
         // Lifecycles can be  used for purely option based transactions.
@@ -121,13 +126,16 @@ public class BenchmarkAnalysisService {
         if (lifeCycle == null || lifeCycle.getOpeningPosition() == null)
             return null;
         ssr.setBaseLifeCycle(lifeCycle);
-
+        stopWatch.stop();
+        stopWatch.start("Building Single Security Result - Building LifeCycle for Benchmarks");
         for(Stock benchmark : benchmarks) {
             // Notice that for benchmarks, there is no notion of 'including options'
-            LifeCycle benchmarkLifeCycle = lifeCycleService.newBenchmarkBasedOnExisting(lifeCycle, benchmark, dividendCache, includeDividends);
+            LifeCycle benchmarkLifeCycle = lifeCycleService.newBenchmarkBasedOnExisting(lifeCycle, benchmark, dividendCache, stockSplitCache, includeDividends);
             ssr.getBenchmarkLifeCycles().add(benchmarkLifeCycle);
             ssr.getOutperformances().add(ssr.getBaseLifeCycle().getSimpleReturn().subtract(benchmarkLifeCycle.getSimpleReturn()));
         }
+        stopWatch.stop();
+        logger.debug(stopWatch.prettyPrint());
         return ssr;
     }
 
@@ -136,7 +144,7 @@ public class BenchmarkAnalysisService {
                                                           Map<Stock, List<OptionTransaction>> allOptionTransactions,
                                                           List<Stock> benchmarks,
                                                           Map<Stock,List<StockDividend>> dividendCache,
-                                                          Map<Stock,List<StockSplit>> stockSplitCache,
+                                                          StockSplitCache stockSplitCache,
                                                           boolean includeDividends, boolean includeCallPuts ) {
         List<ResultOverTime> resultsOverTime = new ArrayList<>();
         ResultOverTime portfolioResultOverTime = new ResultOverTime("Portfolio");

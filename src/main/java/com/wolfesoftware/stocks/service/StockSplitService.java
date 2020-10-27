@@ -12,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -41,13 +42,13 @@ public class StockSplitService {
 
     // OTHER - Non-CRUD Services
 
-    public BigDecimal stockSplitFactorSince(Stock stock, LocalDate sinceDate) {
+    public BigDecimal stockSplitFactorSince(Stock stock, LocalDate sinceDate, StockSplitCache stockSplitCache) {
 
         BigDecimal returnValue = BigDecimal.ONE;
 
-        List<StockSplit> stockSplits = stockSplitRepository.retrieveForOneStockBetweenDates(stock, sinceDate, LocalDate.now());
+        List<StockSplit> stockSplits = stockSplitCache.getStockSplitsBetweenDates(stock, sinceDate, LocalDate.now());
         for (StockSplit ss: stockSplits) {
-            returnValue = returnValue.multiply(ss.getAfterAmount()).divide(ss.getBeforeAmount());
+            returnValue = returnValue.multiply(ss.getAfterAmount()).divide(ss.getBeforeAmount(), RoundingMode.HALF_EVEN);
         }
         return returnValue;
     }

@@ -5,6 +5,8 @@ import com.wolfesoftware.stocks.model.Stock;
 import com.wolfesoftware.stocks.model.StockPrice;
 import com.wolfesoftware.stocks.repository.cloaked.LowLevelStockPriceRepository;
 import com.wolfesoftware.stocks.repository.cloaked.UserBasedRepositoryForStocks;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Example;
 import org.springframework.stereotype.Repository;
 
@@ -19,8 +21,9 @@ public class StockPriceRepository {
     @Resource
     LowLevelStockPriceRepository lowLevelStockPriceRepository;
 
-    @Resource
-    RepositoryUtil repositoryUtil;
+    int counter;
+
+    public static final Logger logger = LoggerFactory.getLogger(StockPriceRepository.class);
 
     // Public methods
 
@@ -45,6 +48,7 @@ public class StockPriceRepository {
     }
 
     public List<StockPrice> retrieveByStockAndDateDescending(Stock stock, LocalDate beginDate, LocalDate endDate) {
+        logger.debug("stock price retrieval counter = {}", counter++);
         return lowLevelStockPriceRepository.findByStockAndDateBetweenOrderByDateDesc(stock, beginDate, endDate);
     }
 

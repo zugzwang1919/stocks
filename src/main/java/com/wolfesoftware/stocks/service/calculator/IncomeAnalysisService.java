@@ -47,7 +47,7 @@ public class IncomeAnalysisService {
         List<Portfolio> portfolios = new Converter<Portfolio>().convertFromIdsToEntities(portfolioIds, portfolioRepository, "portfolio");
         List<LifeCycle> lifeCycles = new ArrayList<>();
         Map<Stock,List<StockDividend>> dividendCache =  new HashMap<>();
-        Map<Stock,List<StockSplit>> stockSplitCache =  new HashMap<>();
+        StockSplitCache stockSplitCache =  new StockSplitCache();
         IncomeAnalysisResponse incomeAnalysisResponse = new IncomeAnalysisResponse();
         IncomeAnalysisResponse.AnalysisTotals analysisTotals = incomeAnalysisResponse.getAnalysisTotals();
         stocks.forEach(s->{

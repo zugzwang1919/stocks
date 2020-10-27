@@ -35,22 +35,21 @@ public class StockPriceService {
 
 
 
-    public BigDecimal retrieveClosingPrice(Stock stock, LocalDate requestedDate) {
+    public BigDecimal retrieveClosingPrice(Stock stock, LocalDate requestedDate, StockSplitCache stockSplitCache) {
         StockPrice dbStockPrice = retrieveDbClosingPrice(stock, requestedDate);
         BigDecimal actualPriceOnDate;
         try {
-             actualPriceOnDate =    stockSplitService.stockSplitFactorSince(stock, requestedDate).
-                                    multiply(dbStockPrice.getPrice());
+            actualPriceOnDate =    stockSplitService.stockSplitFactorSince(stock, requestedDate, stockSplitCache).
+                    multiply(dbStockPrice.getPrice());
         }
         catch (Exception e) {
             DateTimeFormatter dtf = DateTimeFormatter.ISO_LOCAL_DATE;
             String newMessage = "Exception occurred when retrieving closing price for " + stock.getTicker() +
-                                " on " +  dtf.format(requestedDate);
+                    " on " +  dtf.format(requestedDate);
             throw new RuntimeException(newMessage, e);
         }
         return actualPriceOnDate;
     }
-
 
     @Transactional
     // NOTE:  It's important to note that unlike other methods in this class this method will use
