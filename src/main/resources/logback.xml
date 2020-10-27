@@ -32,7 +32,7 @@
     <!-- Logging levels for Our stuff -->
     <!-- <logger name="com.wolfesoftware.stocks.controller.IncomeAnalysisController" level="DEBUG"/> -->
     <!-- <logger name="com.wolfesoftware.stocks.repository" level="DEBUG"/> -->
-    <logger name="com.wolfesoftware.stocks.repository.StockPriceRepository" level="DEBUG"/>
+    <!-- <logger name="com.wolfesoftware.stocks.repository.StockPriceRepository" level="DEBUG"/> -->
     <!-- <logger name="com.wolfesoftware.stocks.service.calculator.BenchmarkAnalysisService" level="DEBUG"/> -->
     <!-- <logger name="com.wolfesoftware.stocks.service.calculator.ClosingPositionService" level="DEBUG"/> -->
     <!-- <logger name="com.wolfesoftware.stocks.service.calculator.OpeningPositionService" level="DEBUG"/> -->
