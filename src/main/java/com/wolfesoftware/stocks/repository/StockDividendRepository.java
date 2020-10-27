@@ -3,7 +3,6 @@ package com.wolfesoftware.stocks.repository;
 import com.wolfesoftware.stocks.exception.NotFoundException;
 import com.wolfesoftware.stocks.model.Stock;
 import com.wolfesoftware.stocks.model.StockDividend;
-import com.wolfesoftware.stocks.model.StockSplit;
 import com.wolfesoftware.stocks.repository.cloaked.LowLevelStockDividendRepository;
 import org.springframework.stereotype.Repository;
 
@@ -22,11 +21,6 @@ public class StockDividendRepository {
     // Public methods
 
     // CREATE
-    public StockDividend createStockDividend(Stock stock, LocalDate exDividendDate, BigDecimal dividendAmount) {
-        StockDividend stockDividendToBeCreated = new StockDividend(stock, exDividendDate, dividendAmount);
-        return lowLevelStockDividendRepository.save(stockDividendToBeCreated);
-    }
-
     public StockDividend persistStockDividend(StockDividend stockPriceToBePersisted) {
         return lowLevelStockDividendRepository.save(stockPriceToBePersisted);
     }

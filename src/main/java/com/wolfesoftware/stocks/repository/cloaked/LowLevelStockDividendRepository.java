@@ -9,8 +9,6 @@ import java.util.List;
 
 public interface LowLevelStockDividendRepository extends JpaRepository<StockDividend, Long> {
 
-    void deleteAllByStock(Stock s);
-
     List<StockDividend> findByStock(Stock stock);
     List<StockDividend> findByStockAndExDividendDate(Stock stock, LocalDate exDividendDate);
     List<StockDividend> findByStockAndExDividendDateBetween(Stock stock, LocalDate beginExDividendDate, LocalDate endExDividendDate);

@@ -1,7 +1,6 @@
 package com.wolfesoftware.stocks.repository;
 
 import com.wolfesoftware.stocks.common.BridgeToSpringBean;
-import com.wolfesoftware.stocks.exception.NotFoundException;
 import com.wolfesoftware.stocks.model.Portfolio;
 import com.wolfesoftware.stocks.model.User;
 import com.wolfesoftware.stocks.repository.cloaked.UserBasedRepositoryForPortfolios;
@@ -12,7 +11,6 @@ import org.springframework.stereotype.Repository;
 import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 @Repository
 public class PortfolioRepository extends UserBasedRepository<Portfolio> {

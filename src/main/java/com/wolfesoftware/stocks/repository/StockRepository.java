@@ -29,13 +29,7 @@ public class StockRepository extends UserBasedRepository<Stock>{
     }
 
     // CREATE
-    public Stock createStock(String ticker, String name, boolean benchmark) {
-        Stock stockToBeCreated = new Stock();
-        stockToBeCreated.setTicker(ticker);
-        stockToBeCreated.setName(name);
-        stockToBeCreated.setBenchmark(benchmark);
-        return userBasedRepositoryForStocks.save(stockToBeCreated);
-    }
+
 
     // RETRIEVE - NOTE: retrieveById() and retrieveAll() are handled by UserBasedRepository
 

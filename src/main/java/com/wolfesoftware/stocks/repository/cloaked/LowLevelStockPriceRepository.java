@@ -2,7 +2,6 @@ package com.wolfesoftware.stocks.repository.cloaked;
 
 import com.wolfesoftware.stocks.model.Stock;
 import com.wolfesoftware.stocks.model.StockPrice;
-import com.wolfesoftware.stocks.model.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
@@ -18,7 +17,5 @@ public interface LowLevelStockPriceRepository extends JpaRepository<StockPrice, 
     Optional<StockPrice> findByStockAndDate(Stock s, LocalDate d);
 
     List<StockPrice> findByStockAndDateBetweenOrderByDateDesc(Stock stock, LocalDate beginDate, LocalDate endDate);
-
-    void deleteAllByStock(Stock s);
 
 }

@@ -1,30 +1,20 @@
 package com.wolfesoftware.stocks.repository;
 
-import com.wolfesoftware.stocks.exception.NotFoundException;
 import com.wolfesoftware.stocks.model.Option;
 import com.wolfesoftware.stocks.model.Stock;
-import com.wolfesoftware.stocks.model.UserBasedPersistentEntity;
 import com.wolfesoftware.stocks.repository.cloaked.UserBasedRepositoryForOptions;
-import com.wolfesoftware.stocks.repository.cloaked.UserBasedRepositoryForStocks;
 import com.wolfesoftware.stocks.service.OptionService;
-import com.wolfesoftware.stocks.service.StockService;
-import org.springframework.data.domain.Example;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.List;
-import java.util.Optional;
 
 @Repository
 public class OptionRepository extends UserBasedRepository<Option> {
     @Resource
     private UserBasedRepositoryForOptions userBasedRepositoryForOptions;
-
-    @Resource
-    private RepositoryUtil repositoryUtil;
 
     @Resource
     private OptionService optionService;

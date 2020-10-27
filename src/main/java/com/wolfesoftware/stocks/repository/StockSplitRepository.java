@@ -2,7 +2,6 @@ package com.wolfesoftware.stocks.repository;
 
 import com.wolfesoftware.stocks.exception.NotFoundException;
 import com.wolfesoftware.stocks.model.Stock;
-import com.wolfesoftware.stocks.model.StockDividend;
 import com.wolfesoftware.stocks.model.StockSplit;
 import com.wolfesoftware.stocks.repository.cloaked.LowLevelStockSplitRepository;
 import org.springframework.stereotype.Repository;
@@ -18,17 +17,9 @@ public class StockSplitRepository {
     @Resource
     LowLevelStockSplitRepository lowLevelStockSplitRepository;
 
-    @Resource
-    RepositoryUtil repositoryUtil;
-
     // Public methods
 
     // CREATE
-    public StockSplit createStockSplit(Stock stock, LocalDate date, BigDecimal afterAmount, BigDecimal beforeAmount) {
-        StockSplit stockSplitToBeCreated = new StockSplit(stock, date, afterAmount, beforeAmount);
-        return lowLevelStockSplitRepository.save(stockSplitToBeCreated);
-    }
-
     public StockSplit persistStockSplit(StockSplit stockPriceToBePersisted) {
         return lowLevelStockSplitRepository.save(stockPriceToBePersisted);
     }
@@ -44,10 +35,6 @@ public class StockSplitRepository {
 
     public List<StockSplit> retrieveForOneStockOnOneDate(Stock stock, LocalDate date) {
         return lowLevelStockSplitRepository.findByStockAndDate(stock, date);
-    }
-
-    public List<StockSplit> retrieveForOneStockBetweenDates(Stock stock, LocalDate startDate, LocalDate endDate) {
-        return lowLevelStockSplitRepository.findByStockAndDateBetween(stock, startDate, endDate);
     }
 
 

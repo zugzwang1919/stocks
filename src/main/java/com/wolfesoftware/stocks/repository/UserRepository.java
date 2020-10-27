@@ -20,11 +20,6 @@ public class UserRepository  {
     @Resource
     LowLevelUserRepository lowLevelUserRepository;
 
-    public Optional<User> findById(Long id) {
-        return lowLevelUserRepository.findById(id);
-    }
-
-
 
     public Optional<User> findUserByUserName(String username) {
         logger.debug("Inside findUserByUserName() where user name = {}", username);

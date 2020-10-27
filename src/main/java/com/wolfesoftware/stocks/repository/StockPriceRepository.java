@@ -32,11 +32,6 @@ public class StockPriceRepository {
     // Public methods
 
     // CREATE
-    public StockPrice createStockPrice(Stock stock, LocalDate date, BigDecimal price) {
-        StockPrice stockPriceToBeCreated = new StockPrice(stock, date, price);
-        return lowLevelStockPriceRepository.save(stockPriceToBeCreated);
-    }
-
     public StockPrice persistStockPrice(StockPrice stockPriceToBePersisted) {
         return lowLevelStockPriceRepository.save(stockPriceToBePersisted);
     }
