@@ -163,7 +163,7 @@ public class StockTransaction extends UserBasedPersistentEntity {
         return st;
     }
  
-    public static class StockTransactionComparator implements Comparator {
+    public static class StockTransactionComparator implements Comparator<StockTransaction> {
 
         private StockTransaction.SortBy sortBy;
         
@@ -172,7 +172,7 @@ public class StockTransaction extends UserBasedPersistentEntity {
         }
                 
         @Override
-        public int compare(Object o1, Object o2) {
+        public int compare(StockTransaction o1, StockTransaction o2) {
            
             StockTransaction tr1 = (StockTransaction)o1;
             StockTransaction tr2 = (StockTransaction)o2;

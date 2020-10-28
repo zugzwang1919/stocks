@@ -1,7 +1,6 @@
 package com.wolfesoftware.stocks.controller;
 
 import com.wolfesoftware.stocks.model.Option;
-import com.wolfesoftware.stocks.model.StockTransaction;
 import com.wolfesoftware.stocks.service.OptionService;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;

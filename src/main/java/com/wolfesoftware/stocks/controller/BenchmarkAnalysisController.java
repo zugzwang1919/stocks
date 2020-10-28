@@ -7,7 +7,7 @@ package com.wolfesoftware.stocks.controller;
 
 
 import com.wolfesoftware.stocks.model.calculator.BenchmarkAnalysisResponse;
-import com.wolfesoftware.stocks.model.calculator.IncomeAnalysisResponse;
+import com.wolfesoftware.stocks.service.calculator.BenchmarkAnalysisService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -20,8 +20,6 @@ import javax.annotation.Resource;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
-
-import com.wolfesoftware.stocks.service.calculator.BenchmarkAnalysisService;
 
 @RestController
 public class BenchmarkAnalysisController {

@@ -16,7 +16,6 @@ import java.math.MathContext;
 import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -50,7 +49,7 @@ public class LifeCycleService {
 
         // Clone the list and trim off all transactions beyond the end date
         List<StockTransaction> clonedStockTransactions = new ArrayList<>(transactions);
-        Collections.sort(clonedStockTransactions, new StockTransaction.StockTransactionComparator(StockTransaction.SortBy.DATE));
+        clonedStockTransactions.sort(new StockTransaction.StockTransactionComparator(StockTransaction.SortBy.DATE));
         for(int i = clonedStockTransactions.size()-1; i >= 0 ; i--) {
             if(clonedStockTransactions.get(i).getDate().isAfter(requestedEndDate))
                 clonedStockTransactions.remove(i);
