@@ -13,10 +13,9 @@ public class DividendPayment {
     private  BigDecimal     numberOfShares;
     private  BigDecimal     totalAmount;
 
-    public DividendPayment(StockDividend dividend, BigDecimal numberOfShares, List<StockSplit> stockSplits) {
+    public DividendPayment(StockDividend dividend, BigDecimal numberOfShares, BigDecimal stockSplitMultiplier) {
         this.dividend = dividend;
         this.numberOfShares = numberOfShares;
-        BigDecimal stockSplitMultiplier = stockSplitMultiplier(dividend.getExDividendDate(), stockSplits);
         this.totalAmount = numberOfShares.multiply(dividend.getDividendAmount()).multiply(stockSplitMultiplier).setScale(2, RoundingMode.HALF_EVEN);
     }
 
@@ -43,22 +42,4 @@ public class DividendPayment {
     }
 
 
-    /**
-     * Sadly (for us), Yahoo (the source of our dividend info), reports an adjusted dividend rather
-     * than the actual dividend that was paid. This method calculates the adjustment factor that
-     * should be used.
-     *
-     */
-    private BigDecimal stockSplitMultiplier(LocalDate exDividendDate, List<StockSplit> stockSplits) {
-
-        BigDecimal returnValue = BigDecimal.ONE;
-
-        for (StockSplit ss: stockSplits) {
-            if (exDividendDate.isBefore(ss.getDate())) {
-                returnValue = returnValue.multiply(ss.getAfterAmount()).divide(ss.getBeforeAmount(),3,BigDecimal.ROUND_HALF_EVEN);
-            }
-        }
-
-        return returnValue;
-    }
 }

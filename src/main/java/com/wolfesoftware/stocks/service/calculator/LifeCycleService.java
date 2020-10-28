@@ -196,12 +196,13 @@ public class LifeCycleService {
 
         OpeningPosition openingPosition = lifeCycle.getOpeningPosition();
         ClosingPosition closingPosition = lifeCycle.getClosingPosition();
+        Stock stock = openingPosition.getStock();
         logger.debug("Caclulating Dividends Accrued.");
         logger.debug("Opening position -  {}", openingPosition);
         logger.debug("Closing position -  {}", closingPosition);
         BigDecimal accumulatedDividends = BigDecimal.ZERO;
-        List<StockDividend> dividends = retrieveDividends(openingPosition.getStock(), dividendCache);
-        List<StockSplit> stockSplits = stockSplitService.retrieveAllForOneStock(lifeCycle.getStock());
+        List<StockDividend> dividends = retrieveDividends(stock, dividendCache);
+
         for(StockDividend dividend : dividends) {
             LocalDate rightToDividendDate = dividend.getExDividendDate().minusDays(1);
             // This is a little yucky.  The closing position is created by either a complete sale of the position (in which case the owner IS NOT due the dividend)
@@ -217,7 +218,8 @@ public class LifeCycleService {
                 // If there was a time in the lifecycle when there were no shares of stock, don't create a DividendEvent
                 if (position.getSize().compareTo(BigDecimal.ZERO) > 0) {
                     // Add details about each individual dividend to the LifeCycle
-                    DividendPayment dividendPayment = new DividendPayment(dividend, position.getSize(), stockSplits);
+                    BigDecimal stockSplitMultiplier = stockSplitService.stockSplitFactorSince(stock, position.getDate());
+                    DividendPayment dividendPayment = new DividendPayment(dividend, position.getSize(), stockSplitMultiplier);
                     lifeCycle.getDividendPayments().add(dividendPayment);
                     // Accrue the dividend
                     logger.debug("One dividend calculated = {}", dividendPayment.getTotalAmount());
