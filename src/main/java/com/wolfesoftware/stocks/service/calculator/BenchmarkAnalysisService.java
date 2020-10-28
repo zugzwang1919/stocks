@@ -57,14 +57,13 @@ public class BenchmarkAnalysisService {
         Map<Stock,List<StockTransaction>> allStockTransactions = stockTransactionRepository.retrieveAndGroup(stocks, portfolios, augmentedEndDate);
         Map<Stock,List<OptionTransaction>> allOptionTransactions = optionTransactionRepository.retrieveAndGroup(stocks, portfolios, augmentedEndDate);
         Map<Stock,List<StockDividend>> dividendCache = new HashMap<>();
-        StockSplitCache stockSplitCache = new StockSplitCache();
 
         BenchmarkAnalysisResponse.CalculatorResults calculatorResults = calculateBasicResults(augmentedStartDate, augmentedEndDate, allStockTransactions, allOptionTransactions, benchmarks,
-                                                                                              dividendCache, stockSplitCache, includeDividends, includeCallsPuts);
+                                                                                              dividendCache, includeDividends, includeCallsPuts);
         if (calculatorResults == null)
             return null;
         List<ResultOverTime> resultsOverTime = calculateResultsOverTime(calculatorResults, allStockTransactions, allOptionTransactions, benchmarks,
-                                                                        dividendCache, stockSplitCache, includeDividends, includeCallsPuts);
+                                                                        dividendCache, includeDividends, includeCallsPuts);
         return new BenchmarkAnalysisResponse(calculatorResults, resultsOverTime);
 
     }
@@ -74,7 +73,6 @@ public class BenchmarkAnalysisService {
                                                     Map<Stock, List<OptionTransaction>> allOptionTransactions,
                                                     List<Stock> benchmarks,
                                                     Map<Stock,List<StockDividend>> dividendCache,
-                                                    StockSplitCache stockSplitCache,
                                                     boolean includeDividends, boolean includeCallPuts) {
         CalculatorResults calculatorResults = new CalculatorResults(benchmarks);
         List<SingleSecurityResult> detailedResults = new ArrayList<>();
@@ -84,7 +82,7 @@ public class BenchmarkAnalysisService {
                 List<StockTransaction> stockTransactionsForOneStock = allStockTransactions.get(oneStock);
                 List<OptionTransaction> optionTransactionsForOneStock = allOptionTransactions.get(oneStock);
                 SingleSecurityResult ssr = buildSingleSecurityResult(oneStock, stockTransactionsForOneStock, optionTransactionsForOneStock,
-                        benchmarks, dividendCache, stockSplitCache, beginDate, endDate, includeDividends, includeCallPuts);
+                        benchmarks, dividendCache, beginDate, endDate, includeDividends, includeCallPuts);
                 if (ssr != null) {
                     detailedResults.add(ssr);
                     calculatorResults.getAccumulatedResults().accumulateResults(ssr);
@@ -112,7 +110,7 @@ public class BenchmarkAnalysisService {
 
     private SingleSecurityResult buildSingleSecurityResult( Stock stock, List<StockTransaction> transactions, List<OptionTransaction> optionTransactions,
                                                             List<Stock> benchmarks,
-                                                            Map<Stock,List<StockDividend>> dividendCache, StockSplitCache stockSplitCache,
+                                                            Map<Stock,List<StockDividend>> dividendCache,
                                                             LocalDate beginDate, LocalDate endDate,
                                                             boolean includeDividends, boolean includeCallPuts ) {
         String debugString = "Building Single Security Result for " + stock.getTicker();
@@ -120,7 +118,7 @@ public class BenchmarkAnalysisService {
         logger.debug(debugString);
         stopWatch.start("Building Single Security Result - Building LifeCycle for Stock");
         SingleSecurityResult ssr = new SingleSecurityResult();
-        LifeCycle lifeCycle = lifeCycleService.buildStockLifeCycle(stock, beginDate, endDate, transactions, optionTransactions, dividendCache, stockSplitCache, includeDividends, includeCallPuts);
+        LifeCycle lifeCycle = lifeCycleService.buildStockLifeCycle(stock, beginDate, endDate, transactions, optionTransactions, dividendCache, includeDividends, includeCallPuts);
         // Lifecycles can be  used for purely option based transactions.
         // We cannot calculate a return (especially against a benchmark for this scenario), so exclude this security from the overall calculation
         if (lifeCycle == null || lifeCycle.getOpeningPosition() == null)
@@ -130,7 +128,7 @@ public class BenchmarkAnalysisService {
         stopWatch.start("Building Single Security Result - Building LifeCycle for Benchmarks");
         for(Stock benchmark : benchmarks) {
             // Notice that for benchmarks, there is no notion of 'including options'
-            LifeCycle benchmarkLifeCycle = lifeCycleService.newBenchmarkBasedOnExisting(lifeCycle, benchmark, dividendCache, stockSplitCache, includeDividends);
+            LifeCycle benchmarkLifeCycle = lifeCycleService.newBenchmarkBasedOnExisting(lifeCycle, benchmark, dividendCache, includeDividends);
             ssr.getBenchmarkLifeCycles().add(benchmarkLifeCycle);
             ssr.getOutperformances().add(ssr.getBaseLifeCycle().getSimpleReturn().subtract(benchmarkLifeCycle.getSimpleReturn()));
         }
@@ -144,7 +142,6 @@ public class BenchmarkAnalysisService {
                                                           Map<Stock, List<OptionTransaction>> allOptionTransactions,
                                                           List<Stock> benchmarks,
                                                           Map<Stock,List<StockDividend>> dividendCache,
-                                                          StockSplitCache stockSplitCache,
                                                           boolean includeDividends, boolean includeCallPuts ) {
         List<ResultOverTime> resultsOverTime = new ArrayList<>();
         ResultOverTime portfolioResultOverTime = new ResultOverTime("Portfolio");
@@ -163,7 +160,7 @@ public class BenchmarkAnalysisService {
         List<LocalDate> endDates = getListOfEndDates(calculatorResults.getAccumulatedResults().getBeginDate(), calculatorResults.getAccumulatedResults().getEndDate());
         for (LocalDate intermediateEndDate : endDates) {
             CalculatorResults cr = calculateBasicResults(calculatorResults.getAccumulatedResults().getBeginDate(),
-                    intermediateEndDate, allSecurityTransactions, allOptionTransactions, benchmarks, dividendCache, stockSplitCache, includeDividends, includeCallPuts);
+                    intermediateEndDate, allSecurityTransactions, allOptionTransactions, benchmarks, dividendCache, includeDividends, includeCallPuts);
             portfolioResultOverTime.getIntermediateResults().add(new IntermediateResult(intermediateEndDate, cr.getAccumulatedResults().getBaseTotalReturn()));
             for (int i = 0; i < benchmarksResultOverTime.size(); i++) {
                 benchmarksResultOverTime.get(i).getIntermediateResults().add(new IntermediateResult(intermediateEndDate, cr.getAccumulatedResults().getListOfBenchmarkData().get(i).getBenchmarkTotalReturn()));

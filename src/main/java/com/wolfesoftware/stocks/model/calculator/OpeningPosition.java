@@ -1,10 +1,10 @@
 package com.wolfesoftware.stocks.model.calculator;
 
 import com.wolfesoftware.stocks.model.Stock;
-import com.wolfesoftware.stocks.model.StockSplitCache;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+
 
 public class OpeningPosition extends Position {
 
@@ -16,8 +16,8 @@ public class OpeningPosition extends Position {
     }
 
     // Copy Constructor
-    public OpeningPosition(OpeningPosition thatOpeningPosition, Stock newStock, StockSplitCache stockSplitCache) {
-        super(thatOpeningPosition, newStock, stockSplitCache);
+    public OpeningPosition(OpeningPosition thatOpeningPosition, Stock newStock) {
+        super(thatOpeningPosition, newStock);
         this.containsOlderTransactions = thatOpeningPosition.containsOlderTransactions;
     }
 

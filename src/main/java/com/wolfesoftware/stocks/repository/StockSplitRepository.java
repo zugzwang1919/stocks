@@ -4,6 +4,9 @@ import com.wolfesoftware.stocks.exception.NotFoundException;
 import com.wolfesoftware.stocks.model.Stock;
 import com.wolfesoftware.stocks.model.StockSplit;
 import com.wolfesoftware.stocks.repository.cloaked.LowLevelStockSplitRepository;
+import org.springframework.cache.CacheManager;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Repository;
 
 import javax.annotation.Resource;
@@ -16,19 +19,28 @@ import java.util.Optional;
 public class StockSplitRepository {
     @Resource
     LowLevelStockSplitRepository lowLevelStockSplitRepository;
+    @Resource
+    CacheManager cacheManager;
 
     // Public methods
 
     // CREATE
-    public StockSplit persistStockSplit(StockSplit stockPriceToBePersisted) {
-        return lowLevelStockSplitRepository.save(stockPriceToBePersisted);
+    public StockSplit persistStockSplit(StockSplit stockSplitToBePersisted) {
+        return lowLevelStockSplitRepository.save(stockSplitToBePersisted);
     }
 
-    public List<StockSplit> persistStockSplits(List<StockSplit> stockPrices) {
-        return lowLevelStockSplitRepository.saveAll(stockPrices);
+    public List<StockSplit> persistStockSplits(List<StockSplit> stockSplits) {
+        return lowLevelStockSplitRepository.saveAll(stockSplits);
     }
 
     // RETRIEVE
+    @Scheduled(fixedRate = 5*60*1000) // Evict the cache every five minutes
+    public void evictStockSplitCache() {
+        //noinspection ConstantConditions
+        cacheManager.getCache("stock-splits").clear();
+    }
+
+    @Cacheable("stock-splits")
     public List<StockSplit> retrieveAllForOneStock(Stock stock) {
         return lowLevelStockSplitRepository.findByStock(stock);
     }

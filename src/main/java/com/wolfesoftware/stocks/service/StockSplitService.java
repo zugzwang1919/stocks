@@ -15,6 +15,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class StockSplitService {
@@ -31,7 +32,7 @@ public class StockSplitService {
     @Resource
     private YahooFinanceService yahooFinanceService;
 
-    private static Logger logger = LoggerFactory.getLogger(StockSplitService.class);
+    private static final Logger logger = LoggerFactory.getLogger(StockSplitService.class);
 
 
     // RETRIEVE
@@ -39,18 +40,25 @@ public class StockSplitService {
         return stockSplitRepository.retrieveAllForOneStock(stock);
     }
 
-
+    public List<StockSplit> retrieveAllForOneStockBetweenDates(Stock stock, LocalDate startDate, LocalDate endDate) {
+        return  retrieveAllForOneStock(stock)
+                .stream()
+                .filter(ss -> !ss.getDate().isBefore(startDate) && !ss.getDate().isAfter(endDate))
+                .collect(Collectors.toList());
+    }
     // OTHER - Non-CRUD Services
 
-    public BigDecimal stockSplitFactorSince(Stock stock, LocalDate sinceDate, StockSplitCache stockSplitCache) {
-
+    public BigDecimal stockSplitFactorBetween(Stock stock, LocalDate startDate, LocalDate endDate) {
         BigDecimal returnValue = BigDecimal.ONE;
-
-        List<StockSplit> stockSplits = stockSplitCache.getStockSplitsBetweenDates(stock, sinceDate, LocalDate.now());
+        List<StockSplit> stockSplits = retrieveAllForOneStockBetweenDates(stock, startDate, endDate);
         for (StockSplit ss: stockSplits) {
             returnValue = returnValue.multiply(ss.getAfterAmount()).divide(ss.getBeforeAmount(), RoundingMode.HALF_EVEN);
         }
         return returnValue;
+    }
+
+    public BigDecimal stockSplitFactorSince(Stock stock, LocalDate sinceDate) {
+        return stockSplitFactorBetween(stock, sinceDate, LocalDate.now());
     }
 
     /*

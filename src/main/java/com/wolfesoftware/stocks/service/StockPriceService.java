@@ -35,11 +35,11 @@ public class StockPriceService {
 
 
 
-    public BigDecimal retrieveClosingPrice(Stock stock, LocalDate requestedDate, StockSplitCache stockSplitCache) {
+    public BigDecimal retrieveClosingPrice(Stock stock, LocalDate requestedDate) {
         StockPrice dbStockPrice = retrieveDbClosingPrice(stock, requestedDate);
         BigDecimal actualPriceOnDate;
         try {
-            actualPriceOnDate =    stockSplitService.stockSplitFactorSince(stock, requestedDate, stockSplitCache).
+            actualPriceOnDate =    stockSplitService.stockSplitFactorSince(stock, requestedDate).
                     multiply(dbStockPrice.getPrice());
         }
         catch (Exception e) {

@@ -1,6 +1,5 @@
 package com.wolfesoftware.stocks.service.calculator;
 
-import com.wolfesoftware.stocks.model.StockSplitCache;
 import com.wolfesoftware.stocks.model.StockTransaction;
 import com.wolfesoftware.stocks.model.calculator.OpeningPosition;
 import org.slf4j.Logger;
@@ -22,7 +21,7 @@ public class OpeningPositionService extends PositionService {
 
 
 
-    public OpeningPosition buildOpeningPosition(List<StockTransaction> stockTransactions, StockSplitCache stockSplitCache, LocalDate beginDate, LocalDate endDate) {
+    public OpeningPosition buildOpeningPosition(List<StockTransaction> stockTransactions, LocalDate beginDate, LocalDate endDate) {
 
         String debugString = "Creating Opening Position on " + dtf.format(beginDate);
         logger.debug("STARTING - " + debugString);
@@ -40,7 +39,7 @@ public class OpeningPositionService extends PositionService {
             }
 
             if (stockTransaction.getDate().isBefore(beginDate)) {
-                addStockTransactionSizeToPosition(beginDate, position, stockTransaction, stockSplitCache);
+                addStockTransactionSizeToPosition(beginDate, position, stockTransaction);
                 position.setDate(beginDate);
                 position.setContainsOlderTransactions(true);
                 positionEstablished = true;
@@ -49,7 +48,7 @@ public class OpeningPositionService extends PositionService {
                 if (accumulationDate == null)
                     accumulationDate = stockTransaction.getDate();
                 if(stockTransaction.getDate().equals(accumulationDate))
-                    addStockTransactionSizeToPosition(accumulationDate, position, stockTransaction, stockSplitCache);
+                    addStockTransactionSizeToPosition(accumulationDate, position, stockTransaction);
             }
             // If we ever detect that the size of the opening position is zero (there has been a buy and sell of the same amount),
             // null everything out and act like a position was never established in the first place
@@ -63,7 +62,7 @@ public class OpeningPositionService extends PositionService {
 
         // Calculate the value of the position if there is one.
         if (position != null && position.containsOlderTransactions())
-            calculateValue(position, stockSplitCache);
+            calculateValue(position);
 
         stopWatch.stop();
         logger.debug(stopWatch.prettyPrint());

@@ -2,7 +2,6 @@ package com.wolfesoftware.stocks.model.calculator;
 
 import com.wolfesoftware.stocks.common.BridgeToSpringBean;
 import com.wolfesoftware.stocks.model.Stock;
-import com.wolfesoftware.stocks.model.StockSplitCache;
 import com.wolfesoftware.stocks.service.StockPriceService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,11 +38,11 @@ public class Position {
         value = BigDecimal.ZERO;
     }
 
-    public Position(Position thatPosition, Stock newStock, StockSplitCache stockSplitCache) {
+    public Position(Position thatPosition, Stock newStock) {
         this(newStock, thatPosition.getDate());
         this.value = thatPosition.getValue();
         StockPriceService stockPriceService = BridgeToSpringBean.getBean(StockPriceService.class);
-        BigDecimal priceOnDate = stockPriceService.retrieveClosingPrice(newStock, thatPosition.date, stockSplitCache);
+        BigDecimal priceOnDate = stockPriceService.retrieveClosingPrice(newStock, thatPosition.date);
         this.size = this.value.divide(priceOnDate,3, RoundingMode.HALF_EVEN);
         logger.debug("PositionService size for benchmark = " + this.size);
     }
