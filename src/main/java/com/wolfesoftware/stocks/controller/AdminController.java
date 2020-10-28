@@ -27,7 +27,7 @@ public class AdminController {
     @Resource
     StockSplitService stockSplitService;
 
-    private static Logger logger = LoggerFactory.getLogger(AdminController.class);
+    private static final Logger logger = LoggerFactory.getLogger(AdminController.class);
 
     @PostMapping("/reloadAllStockPrices")
     public LoadOrUpdateResponse reloadAllStockPrices() {

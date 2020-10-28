@@ -23,7 +23,7 @@ import java.util.List;
 
 @RestController
 public class BenchmarkAnalysisController {
-    private static Logger logger = LoggerFactory.getLogger(BenchmarkAnalysisController.class);
+    private static final Logger logger = LoggerFactory.getLogger(BenchmarkAnalysisController.class);
 
     @Resource
     BenchmarkAnalysisService benchmarkAnalysisService;

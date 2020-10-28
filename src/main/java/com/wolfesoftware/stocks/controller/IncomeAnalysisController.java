@@ -23,7 +23,7 @@ import java.util.List;
 
 @RestController
 public class IncomeAnalysisController {
-    private static Logger logger = LoggerFactory.getLogger(IncomeAnalysisController.class);
+    private static final Logger logger = LoggerFactory.getLogger(IncomeAnalysisController.class);
 
     @Resource
     IncomeAnalysisService incomeAnalysisService;
