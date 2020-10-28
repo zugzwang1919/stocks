@@ -46,7 +46,6 @@ public class StockPriceRepository {
 
     @Scheduled(fixedRate = 5*60*1000) // Evict the cache every five minutes
     public void evictStockPriceCache() {
-        logger.debug("We're evicting the stock-price cache.");
         //noinspection ConstantConditions
         cacheManager.getCache("stock-prices").clear();
     }

@@ -44,7 +44,6 @@ public class LifeCycleService {
 
     public LifeCycle buildStockLifeCycle(Stock stock, LocalDate requestedStartDate, LocalDate requestedEndDate,
                                                 List<StockTransaction> transactions, List<OptionTransaction> optionTransactions,
-                                                Map<Stock,List<StockDividend>> dividendCache,
                                                 boolean includeDividends, boolean includeOptions) {
 
         // Clone the list and trim off all transactions beyond the end date
@@ -77,7 +76,7 @@ public class LifeCycleService {
 
             // Handle dividends
             if (includeDividends)
-                populateDividendInfo(lifeCycle, dividendCache);
+                populateDividendInfo(lifeCycle);
         }
         // Handle Options
         if (includeOptions) {
@@ -108,9 +107,7 @@ public class LifeCycleService {
         return lifeCycle;
     }
 
-    public LifeCycle newBenchmarkBasedOnExisting(LifeCycle thatLifeCycle, Stock newStock,
-                                                 Map<Stock,List<StockDividend>> dividendCache,
-                                                 boolean includeDividends) {
+    public LifeCycle newBenchmarkBasedOnExisting(LifeCycle thatLifeCycle, Stock newStock, boolean includeDividends) {
         LifeCycle benchmarkLifeCycle = new LifeCycle();
         benchmarkLifeCycle.setStock(newStock);
         benchmarkLifeCycle.setRequestedStartDate(thatLifeCycle.getRequestedStartDate());
@@ -121,7 +118,7 @@ public class LifeCycleService {
 
         // Handle dividends
         if (includeDividends)
-            populateDividendInfo(benchmarkLifeCycle, dividendCache);
+            populateDividendInfo(benchmarkLifeCycle);
 
         // Handle Calls and Puts
         // Note: For the Benchmark - Covered Calls and Naked Puts are not relevant so stick with the default values of BigDecimal.ZERO
@@ -191,7 +188,7 @@ public class LifeCycleService {
         lifeCycle.setOptionExposureToCallsAtRequestedEndDate(exposureToCallsAtRequestedEndDate);
     }
 
-    private void populateDividendInfo(LifeCycle lifeCycle, Map<Stock,List<StockDividend>> dividendCache) {
+    private void populateDividendInfo(LifeCycle lifeCycle) {
 
         OpeningPosition openingPosition = lifeCycle.getOpeningPosition();
         ClosingPosition closingPosition = lifeCycle.getClosingPosition();
@@ -200,7 +197,7 @@ public class LifeCycleService {
         logger.debug("Opening position -  {}", openingPosition);
         logger.debug("Closing position -  {}", closingPosition);
         BigDecimal accumulatedDividends = BigDecimal.ZERO;
-        List<StockDividend> dividends = retrieveDividends(stock, dividendCache);
+        List<StockDividend> dividends = stockDividendService.retrieveAllForOneStock(stock);
 
         for(StockDividend dividend : dividends) {
             LocalDate rightToDividendDate = dividend.getExDividendDate().minusDays(1);
@@ -397,24 +394,6 @@ public class LifeCycleService {
         logger.debug("Latest date of interest for '{}' was finalized at  {}", lifeCycle.getStock().getTicker(), result);
         return result;
     }
-
-
-    private List<StockDividend> retrieveDividends(Stock stock, Map<Stock,List<StockDividend>> dividendCache ) {
-        List<StockDividend> dividends = new ArrayList<>();
-        List<StockDividend> cachedDividends = dividendCache.get(stock);
-        if (cachedDividends != null) {
-            dividends.addAll(cachedDividends);
-        }
-        else {
-            List<StockDividend> retrievedDividends = stockDividendService.retrieveAllForOneStock(stock);
-            dividends.addAll(retrievedDividends);
-            dividendCache.put(stock, retrievedDividends);
-        }
-        return dividends;
-    }
-
-
-
 
 
     private  List<StockTransaction> createInterveningStockTransactionsBasedOnExisting(OpeningPosition ourOpeningPosition,
