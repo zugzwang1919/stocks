@@ -5,7 +5,6 @@ import com.wolfesoftware.stocks.exception.UnexpectedException;
 import com.wolfesoftware.stocks.model.UserBasedPersistentEntity;
 import org.springframework.data.domain.Example;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
 
 import javax.annotation.Resource;
 import java.util.List;

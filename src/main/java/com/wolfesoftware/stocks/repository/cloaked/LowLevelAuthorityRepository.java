@@ -5,6 +5,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface LowLevelAuthorityRepository extends JpaRepository<Authority, Long> {
 
-    Authority save(Authority authority);
+    <A extends Authority> A save(A authority);
 
 }

@@ -4,12 +4,10 @@ import com.wolfesoftware.stocks.exception.NotFoundException;
 import com.wolfesoftware.stocks.model.Stock;
 import com.wolfesoftware.stocks.model.StockPrice;
 import com.wolfesoftware.stocks.repository.cloaked.LowLevelStockPriceRepository;
-import com.wolfesoftware.stocks.repository.cloaked.UserBasedRepositoryForStocks;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.Cacheable;
-import org.springframework.data.domain.Example;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Repository;
 
@@ -49,6 +47,7 @@ public class StockPriceRepository {
     @Scheduled(fixedRate = 5*60*1000) // Evict the cache every five minutes
     public void evictStockPriceCache() {
         logger.debug("We're evicting the stock-price cache.");
+        //noinspection ConstantConditions
         cacheManager.getCache("stock-prices").clear();
     }
 

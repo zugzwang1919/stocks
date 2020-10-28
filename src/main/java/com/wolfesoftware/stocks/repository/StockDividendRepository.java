@@ -40,10 +40,6 @@ public class StockDividendRepository {
         return lowLevelStockDividendRepository.findByStockAndExDividendDate(stock, date);
     }
 
-    public List<StockDividend> retrieveForOneStockBetweenDates(Stock stock, LocalDate startDate, LocalDate endDate) {
-        return lowLevelStockDividendRepository.findByStockAndExDividendDateBetween(stock, startDate, endDate);
-    }
-
 
     // UPDATE
     public StockDividend updateStockDividend(Long id, LocalDate exDividendDate, BigDecimal dividendAmount) {

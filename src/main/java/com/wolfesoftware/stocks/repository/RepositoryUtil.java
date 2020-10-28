@@ -4,7 +4,6 @@ import com.wolfesoftware.stocks.exception.IllegalActionException;
 import com.wolfesoftware.stocks.model.Authority;
 import com.wolfesoftware.stocks.model.User;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
@@ -48,7 +47,7 @@ public class RepositoryUtil {
             return null;
         // If this user is an admin no restriction should be placed on a query
         List<Authority> authorities = u.getAuthorities();
-        boolean admin = authorities.stream().filter( a -> a.getRole().equals(Authority.Role.ROLE_ADMIN)).findFirst().isPresent();
+        boolean admin = authorities.stream().anyMatch(a -> a.getRole().equals(Authority.Role.ROLE_ADMIN));
         if (admin)
             return null;
         return u;

@@ -6,7 +6,6 @@ import com.wolfesoftware.stocks.model.User;
 import com.wolfesoftware.stocks.repository.cloaked.LowLevelUserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import javax.annotation.Resource;
@@ -15,7 +14,7 @@ import java.util.Optional;
 @Repository
 public class UserRepository  {
 
-    public static Logger logger = LoggerFactory.getLogger(UserRepository.class);
+    public static final Logger logger = LoggerFactory.getLogger(UserRepository.class);
 
     @Resource
     LowLevelUserRepository lowLevelUserRepository;
