@@ -5,38 +5,28 @@
  */
 package com.wolfesoftware.stocks.config;
 
-import com.wolfesoftware.stocks.model.User;
-import com.wolfesoftware.stocks.repository.UserRepository;
 import io.jsonwebtoken.ExpiredJwtException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-import javax.annotation.Resource;
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
+import java.util.Map;
 
 @Component
 public class JwtRequestFilter extends OncePerRequestFilter {
 
-
     @Autowired
     private JwtTokenUtil jwtTokenUtil;
-    @Resource
-    private UserRepository userRepository;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
@@ -61,41 +51,25 @@ public class JwtRequestFilter extends OncePerRequestFilter {
         }
         // Once we get the token validate it.
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            UserDetails userDetails = loadUserByUsername(username);
-            // if token is valid configure Spring Stock to manually set
-            // authentication
+
+            // if token is valid, reshape it into a form that Spring can understand and tell it to use it for this context
             if (jwtTokenUtil.validateToken(tokenString)) {
+
+                // Set the username and granted authorities portion of the UserPasswordAuthenticationToken
                 List<SimpleGrantedAuthority> grantedAuthorities = jwtTokenUtil.buildGrantedAuthoritiesFromToken(tokenString);
                 UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken =
-                        new UsernamePasswordAuthenticationToken(userDetails, null, grantedAuthorities);
-                usernamePasswordAuthenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                // After setting the Authentication in the context, we specify
-                // that the current user is authenticated. So it passes the
-                // Spring Stock Configurations successfully.
+                        new UsernamePasswordAuthenticationToken(username, null, grantedAuthorities);
+
+                // Set the details portion of the UserPasswordAuthenticationToken
+                Map<String, Long> details = new HashMap<>();
+                details.put("ID", jwtTokenUtil.getUserIdFromToken(tokenString));
+                usernamePasswordAuthenticationToken.setDetails(details);
+
+                // Tell Spring to use this newly created UserPasswordAuthenticationToken for this context
                 SecurityContextHolder.getContext().setAuthentication(usernamePasswordAuthenticationToken);
             }
         }
         chain.doFilter(request, response);
     }
-
-    private org.springframework.security.core.userdetails.User loadUserByUsername(String username) throws UsernameNotFoundException {
-        logger.debug("Entering loadUserByUsername()");
-        Optional<User> user = userRepository.findUserByUserName(username);
-        logger.debug("Inside loadUserByUsername(). User has been retrieved from DB.");
-        if (user.isPresent()) {
-            User u = user.get();
-            List<GrantedAuthority> authorities = u.getAuthorities().stream().
-                    map(a -> new SimpleGrantedAuthority(a.getRole().toString())).
-                    collect(Collectors.toList());
-            org.springframework.security.core.userdetails.User returnedUser = new org.springframework.security.core.userdetails.User(u.getUsername(), u.getPassword(), authorities);
-            logger.debug("Exiting loadUserByUsername() - User was found and UserDetails were created");
-            return returnedUser;
-        } else {
-            logger.debug("Exiting loadUserByUsername() - User was not found.");
-            throw new UsernameNotFoundException("User not found with username: " + username);
-        }
-    }
-
-
 
 }

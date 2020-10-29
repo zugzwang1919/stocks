@@ -10,15 +10,14 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.annotation.Resource;
+
 import java.util.List;
-import java.util.Optional;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Component
 public class RepositoryUtil {
 
-    @Resource
-    UserRepository userRepository;
 
     /**
      * This should be used if the caller is absolutely expecting a 'current user'.  This method
@@ -61,14 +60,23 @@ public class RepositoryUtil {
         String userName = (principal instanceof UserDetails) ?
                 ((UserDetails) principal).getUsername() :
                 principal.toString();
-        // FIXME:  I BELIEVE that we should not go to the database for this. We should keep
-        // FIXME:  everything required to build a user in the "authentication" token
-        Optional<User> ou = userRepository.findUserByUserName(userName);
-        if (ou.isEmpty()) {
-            throw new IllegalActionException("No Current User could be identified.");
-        } else {
-            return ou.get();
-        }
+
+        // Create a minimal User object to be used in JOINs and Comparisons
+        // NOTE: User's equals() method only relies on Id.
+        // NOTE: The code above requires some basic Authority information as well
+        User u = new User();
+        u.setId(((Map<String, Long>)authentication.getDetails()).get("ID"));
+        u.setUsername(userName);
+
+        List<Authority> authorities = authentication.getAuthorities().stream()
+                .map(ga -> {
+                        Authority a = new Authority();
+                        a.setRole(Authority.Role.valueOf(ga.getAuthority()));
+                        return a;
+                    })
+                .collect(Collectors.toList());
+        u.setAuthorities(authorities);
+        return u;
     }
 
 

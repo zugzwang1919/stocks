@@ -48,6 +48,15 @@ public class JwtTokenUtil implements Serializable {
         List<SimpleGrantedAuthority> listOfGrantedAuthorities = setOfRoles.stream().map(SimpleGrantedAuthority::new).collect(Collectors.toList());
         return listOfGrantedAuthorities;
     }
+    public Long getUserIdFromToken(String token) {
+        Claims claims = getAllClaimsFromToken(token);
+        // This is a bit confusing.  Even though when the claim is generated, Id is a LONG, once it has been
+        // encoded, sent to the client, returned from the client, and decoded, it has magically become and INTEGER
+        Integer idInteger =  (Integer) claims.get("ID");
+        Long idLong = Long.valueOf(idInteger);
+        return idLong;
+
+    }
 
     // Private methods for examining a token
 
@@ -75,9 +84,11 @@ public class JwtTokenUtil implements Serializable {
     public String generateToken(User authenticatedUser) {
         Map<String, Object> claims = new HashMap<>();
         List<String> authorities = authenticatedUser.getAuthorities().stream().map(authority -> authority.getRole().toString()).collect(Collectors.toList());
-        String value = StringUtils.collectionToDelimitedString(authorities, ",");
-        String key = "ROLES";
-        claims.put(key, value);
+        // Put the User's ID in the claims
+        claims.put("ID", authenticatedUser.getId());
+        // Put the User's ROLE(S) (e.g. ADMIN_ROLE, USER_ROLE) in the claims
+        claims.put("ROLES", StringUtils.collectionToDelimitedString(authorities, ","));
+
         return doGenerateToken(claims, authenticatedUser.getUsername());
     }
 
