@@ -6,12 +6,12 @@ import com.wolfesoftware.stocks.model.calculator.ClosingPosition;
 import com.wolfesoftware.stocks.model.calculator.IncomeAnalysisResponse;
 import com.wolfesoftware.stocks.model.calculator.LifeCycle;
 import com.wolfesoftware.stocks.repository.*;
+import com.wolfesoftware.stocks.service.IdToEntityConverter;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
-import java.math.BigInteger;
 import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.util.*;
@@ -43,8 +43,8 @@ public class IncomeAnalysisService {
         LocalDate augmentedStartDate = startDate == null ? beginningOfTime : startDate;
         LocalDate augmentedEndDate = endDate == null ? LocalDate.now() : endDate;
 
-        List<Stock> stocks = new Converter<Stock>().convertFromIdsToEntities(stockIds, stockRepository, "stock");
-        List<Portfolio> portfolios = new Converter<Portfolio>().convertFromIdsToEntities(portfolioIds, portfolioRepository, "portfolio");
+        List<Stock> stocks = new IdToEntityConverter<Stock>().convertFromIdsToEntities(stockIds, stockRepository, "stock");
+        List<Portfolio> portfolios = new IdToEntityConverter<Portfolio>().convertFromIdsToEntities(portfolioIds, portfolioRepository, "portfolio");
         List<LifeCycle> lifeCycles = new ArrayList<>();
         IncomeAnalysisResponse incomeAnalysisResponse = new IncomeAnalysisResponse();
         IncomeAnalysisResponse.AnalysisTotals analysisTotals = incomeAnalysisResponse.getAnalysisTotals();
@@ -107,19 +107,5 @@ public class IncomeAnalysisService {
         }
         return BigDecimal.ZERO;
 
-    }
-
-    // FIXME: There's another one of these in BenchmarkAnalysisService
-
-    private class Converter<T> {
-        private List<T> convertFromIdsToEntities(List<Long> ids, UserBasedRepository userBasedRepository, String nameOfUserBasedEntity) {
-            List<T> entities = ids.stream().map(id -> {
-                Optional<T> optionalEntity = userBasedRepository.retrieveById(id);
-                if (optionalEntity.isEmpty())
-                    throw new NotFoundException("The requested " + nameOfUserBasedEntity + " with an ID of " + id + " could not be found.");
-                return optionalEntity.get();
-            }).collect(Collectors.toList());
-            return entities;
-        }
     }
 }

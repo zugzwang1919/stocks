@@ -1,17 +1,17 @@
 package com.wolfesoftware.stocks.service.calculator;
 
 import com.wolfesoftware.stocks.common.LocalDateUtil;
-import com.wolfesoftware.stocks.exception.NotFoundException;
-import com.wolfesoftware.stocks.model.*;
+import com.wolfesoftware.stocks.model.OptionTransaction;
+import com.wolfesoftware.stocks.model.Portfolio;
+import com.wolfesoftware.stocks.model.Stock;
+import com.wolfesoftware.stocks.model.StockTransaction;
 import com.wolfesoftware.stocks.model.calculator.BenchmarkAnalysisResponse;
-import static com.wolfesoftware.stocks.model.calculator.BenchmarkAnalysisResponse.CalculatorResults;
-import static com.wolfesoftware.stocks.model.calculator.BenchmarkAnalysisResponse.IntermediateResult;
-import static com.wolfesoftware.stocks.model.calculator.BenchmarkAnalysisResponse.ResultOverTime;
-import static com.wolfesoftware.stocks.model.calculator.BenchmarkAnalysisResponse.SingleSecurityResult;
-
 import com.wolfesoftware.stocks.model.calculator.LifeCycle;
-import static com.wolfesoftware.stocks.model.calculator.BenchmarkAnalysisResponse.CalculatorResults;
-import com.wolfesoftware.stocks.repository.*;
+import com.wolfesoftware.stocks.repository.OptionTransactionRepository;
+import com.wolfesoftware.stocks.repository.PortfolioRepository;
+import com.wolfesoftware.stocks.repository.StockRepository;
+import com.wolfesoftware.stocks.repository.StockTransactionRepository;
+import com.wolfesoftware.stocks.service.IdToEntityConverter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -19,14 +19,16 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StopWatch;
 
 import javax.annotation.Resource;
-import javax.swing.text.DateFormatter;
 import java.math.BigDecimal;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAdjusters;
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+import static com.wolfesoftware.stocks.model.calculator.BenchmarkAnalysisResponse.*;
 
 
 @Service
@@ -52,9 +54,9 @@ public class BenchmarkAnalysisService {
         LocalDate augmentedStartDate = startDate == null ? beginningOfTime : startDate;
         LocalDate augmentedEndDate = endDate == null ? LocalDate.now() : endDate;
 
-        List<Stock> stocks = new Converter<Stock>().convertFromIdsToEntities(stockIds, stockRepository, "stock");
-        List<Portfolio> portfolios = new Converter<Portfolio>().convertFromIdsToEntities(portfolioIds, portfolioRepository, "portfolio");
-        List<Stock> benchmarks = new Converter<Stock>().convertFromIdsToEntities(benchmarkIds, stockRepository, "stock");
+        List<Stock> stocks = new IdToEntityConverter<Stock>().convertFromIdsToEntities(stockIds, stockRepository, "stock");
+        List<Portfolio> portfolios = new IdToEntityConverter<Portfolio>().convertFromIdsToEntities(portfolioIds, portfolioRepository, "portfolio");
+        List<Stock> benchmarks = new IdToEntityConverter<Stock>().convertFromIdsToEntities(benchmarkIds, stockRepository, "stock");
         Map<Stock,List<StockTransaction>> allStockTransactions = stockTransactionRepository.retrieveAndGroup(stocks, portfolios, augmentedEndDate);
         Map<Stock,List<OptionTransaction>> allOptionTransactions = optionTransactionRepository.retrieveAndGroup(stocks, portfolios, augmentedEndDate);
 
@@ -254,19 +256,5 @@ public class BenchmarkAnalysisService {
 
     private enum Frequency {
         QUARTERLY, MONTHLY, WEEKLY, DAILY
-    }
-
-
-    // FIXME: There's another one of these in IncomeAnalysisService
-    private static class Converter<T> {
-        private List<T> convertFromIdsToEntities(List<Long> ids, UserBasedRepository userBasedRepository, String nameOfUserBasedEntity) {
-            List<T> entities = ids.stream().map(id -> {
-                Optional<T> optionalEntity = userBasedRepository.retrieveById(id);
-                if (optionalEntity.isEmpty())
-                    throw new NotFoundException("The requested " + nameOfUserBasedEntity + " with an ID of " + id + " could not be found.");
-                return optionalEntity.get();
-            }).collect(Collectors.toList());
-            return entities;
-        }
     }
 }
