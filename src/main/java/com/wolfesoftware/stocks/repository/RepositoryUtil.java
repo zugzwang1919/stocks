@@ -6,16 +6,12 @@ import com.wolfesoftware.stocks.model.User;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
-
 
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-@Component
+
 public class RepositoryUtil {
 
 
@@ -24,8 +20,7 @@ public class RepositoryUtil {
      * throws an exception if one does not exist.
      *
      */
-    @Transactional(propagation= Propagation.REQUIRES_NEW)
-    public User getCurrentUser() {
+    public static User getCurrentUser() {
         User user = inspectCurrentUser();
         if (user == null)
             throw new IllegalActionException("No Current User could be identified.");
@@ -38,8 +33,7 @@ public class RepositoryUtil {
      * that the SYSTEM is running a null value is returned.
      *
      */
-    @Transactional(propagation= Propagation.REQUIRES_NEW)
-    public User getRestrictingUser() {
+    public static User getRestrictingUser() {
         User u = inspectCurrentUser();
         // If there is not a user in the current context, this is the system running & no restriction should be placed on a query
         if (u == null)
@@ -52,7 +46,7 @@ public class RepositoryUtil {
         return u;
     }
 
-    private User inspectCurrentUser() {
+    private static User inspectCurrentUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null)
             return null;

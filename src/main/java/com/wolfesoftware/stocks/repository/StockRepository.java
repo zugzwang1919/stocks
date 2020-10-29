@@ -17,8 +17,6 @@ public class StockRepository extends UserBasedRepository<Stock>{
     @Resource
     UserBasedRepositoryForStocks userBasedRepositoryForStocks;
 
-    @Resource
-    RepositoryUtil repositoryUtil;
 
     // Configure this class to be a subclass of  UserBasedRepository
     public StockRepository() {
@@ -35,7 +33,7 @@ public class StockRepository extends UserBasedRepository<Stock>{
 
     public List<Stock> retrieveAllBenchmarks() {
         // Get the current user
-        User currentUser = repositoryUtil.getCurrentUser();
+        User currentUser = RepositoryUtil.getCurrentUser();
         return userBasedRepositoryForStocks.findAllBenchmarksByUser(currentUser);
     }
 

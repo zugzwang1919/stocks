@@ -13,9 +13,6 @@ import java.util.Optional;
 
 public abstract class UserBasedRepository<T extends UserBasedPersistentEntity> {
 
-    @Resource
-    private RepositoryUtil repositoryUtil;
-
     private final Class<T> typeOfUserBasedPersistentEntity;
 
 
@@ -96,7 +93,7 @@ public abstract class UserBasedRepository<T extends UserBasedPersistentEntity> {
                     typeOfUserBasedPersistentEntity.getCanonicalName() + " inside UserBasedRepository.");
         }
         // Populate the user part of t
-        t.setUser(repositoryUtil.getRestrictingUser());
+        t.setUser(RepositoryUtil.getRestrictingUser());
         return t;
     }
 }

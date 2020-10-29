@@ -17,9 +17,6 @@ public class PortfolioRepository extends UserBasedRepository<Portfolio> {
     @Resource
     UserBasedRepositoryForPortfolios userBasedRepositoryForPortfolios;
 
-    @Resource
-    RepositoryUtil repositoryUtil;
-
     // Configure this class to be a subclass of  UserBasedRepository
     public PortfolioRepository(){
         super(Portfolio.class);
@@ -55,7 +52,7 @@ public class PortfolioRepository extends UserBasedRepository<Portfolio> {
         if (portfolioIds == null || portfolioIds.isEmpty()) {
             return new ArrayList<>();
         }
-        User currentUser = repositoryUtil.getCurrentUser();
+        User currentUser = RepositoryUtil.getCurrentUser();
         return userBasedRepositoryForPortfolios.findByUserAndIdIn(currentUser, portfolioIds);
     }
 

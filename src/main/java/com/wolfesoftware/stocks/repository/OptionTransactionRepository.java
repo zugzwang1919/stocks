@@ -17,11 +17,9 @@ import static java.util.stream.Collectors.groupingBy;
 
 @Repository
 public class OptionTransactionRepository extends UserBasedRepository<OptionTransaction> {
-    @Resource
-    UserBasedRepositoryForOptionTransactions userBasedRepositoryForOptionTransactions;
 
     @Resource
-    RepositoryUtil repositoryUtil;
+    UserBasedRepositoryForOptionTransactions userBasedRepositoryForOptionTransactions;
 
     // Configure this class to be a subclass of  UserBasedRepository
     public OptionTransactionRepository() {
@@ -34,7 +32,7 @@ public class OptionTransactionRepository extends UserBasedRepository<OptionTrans
 
     // RETRIEVE
     public List<OptionTransaction> retrieveForOneStock(Stock stock, LocalDate beginDate, LocalDate endDate, List<Portfolio> portfolios) {
-        User currentUser = repositoryUtil.getCurrentUser();
+        User currentUser = RepositoryUtil.getCurrentUser();
         return userBasedRepositoryForOptionTransactions.findByUserAndStockAndDateBetweenAndPortfolioIn(currentUser, stock, beginDate, endDate, portfolios);
     }
 
@@ -48,7 +46,7 @@ public class OptionTransactionRepository extends UserBasedRepository<OptionTrans
     // Retrieve all StockTransactions that are used by a list of Stocks and in a list of Portfolios before a specific end date
     public List<OptionTransaction> retrieve(List<Stock> stocks, List<Portfolio> portfolios, LocalDate endDate) {
         // Get the current user
-        User currentUser = repositoryUtil.getCurrentUser();
+        User currentUser = RepositoryUtil.getCurrentUser();
         // Retrieve the StockTransactions with the cloaked repo
         return userBasedRepositoryForOptionTransactions.findByUserAndStockInAndPortfolioInAndDateBefore(currentUser, stocks, portfolios, endDate);
     }

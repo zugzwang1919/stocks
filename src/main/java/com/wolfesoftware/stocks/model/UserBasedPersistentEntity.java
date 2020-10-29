@@ -31,8 +31,7 @@ public abstract class UserBasedPersistentEntity extends PersistentEntity {
         }
 
         // Set the user to the current user when this object is inserted into the database for the first time
-        RepositoryUtil repositoryUtil = BridgeToSpringBean.getBean(RepositoryUtil.class);
-        user = repositoryUtil.getCurrentUser();
+        user = RepositoryUtil.getCurrentUser();
 
         super.prePersist();
     }
@@ -42,8 +41,8 @@ public abstract class UserBasedPersistentEntity extends PersistentEntity {
     // NOTE:  always insert a "WHERE userId = " clause.  If the error is ever seen, there is likely a bug
     // NOTE:  in the repository layer also.
     public void postLoad() {
-        RepositoryUtil repositoryUtil = BridgeToSpringBean.getBean(RepositoryUtil.class);
-        User restrictingUser = repositoryUtil.getRestrictingUser();
+
+        User restrictingUser = RepositoryUtil.getRestrictingUser();
 
         // Make sure that the caller has the right to inspect this entity that we're about to return
         if (restrictingUser != null && !restrictingUser.equals(this.user))
@@ -61,8 +60,7 @@ public abstract class UserBasedPersistentEntity extends PersistentEntity {
 
     @PreRemove
     public void preRemove() {
-        RepositoryUtil repositoryUtil = BridgeToSpringBean.getBean(RepositoryUtil.class);
-        User currentUser = repositoryUtil.getCurrentUser();
+        User currentUser = RepositoryUtil.getCurrentUser();
 
         // Make sure that the caller owns this entity that we're about to delete
         if (!currentUser.equals(this.user))

@@ -21,11 +21,9 @@ import static java.util.stream.Collectors.groupingBy;
 
 @Repository
 public class StockTransactionRepository extends UserBasedRepository<StockTransaction> {
-    @Resource
-    UserBasedRepositoryForStockTransactions userBasedRepositoryForStockTransactions;
 
     @Resource
-    RepositoryUtil repositoryUtil;
+    UserBasedRepositoryForStockTransactions userBasedRepositoryForStockTransactions;
 
 
     // Configure this class to be a subclass of  UserBasedRepository
@@ -40,7 +38,7 @@ public class StockTransactionRepository extends UserBasedRepository<StockTransac
 
     // RETRIEVE
     public List<StockTransaction> retrieveForOneStock(Stock stock, LocalDate beginDate, LocalDate endDate, List<Portfolio> portfolios) {
-        User currentUser = repositoryUtil.getCurrentUser();
+        User currentUser = RepositoryUtil.getCurrentUser();
         return userBasedRepositoryForStockTransactions.findByUserAndStockAndDateBetweenAndPortfolioIn(currentUser, stock, beginDate, endDate, portfolios);
     }
 
@@ -52,7 +50,7 @@ public class StockTransactionRepository extends UserBasedRepository<StockTransac
             return new ArrayList<>();
         }
         // Get the current user
-        User currentUser = repositoryUtil.getCurrentUser();
+        User currentUser = RepositoryUtil.getCurrentUser();
         // Retrieve the StockTransactions with the cloaked repo
         return userBasedRepositoryForStockTransactions.findByUserAndPortfolioIn(currentUser, portfolios);
     }
@@ -67,7 +65,7 @@ public class StockTransactionRepository extends UserBasedRepository<StockTransac
     // Retrieve all StockTransactions that are used by a list of Stocks and in a list of Portfolios before a specific end date
     public List<StockTransaction> retrieve(List<Stock> stocks, List<Portfolio> portfolios, LocalDate endDate) {
         // Get the current user
-        User currentUser = repositoryUtil.getCurrentUser();
+        User currentUser = RepositoryUtil.getCurrentUser();
         // Retrieve the StockTransactions with the cloaked repo
         return userBasedRepositoryForStockTransactions.findByUserAndStockInAndPortfolioInAndDateBefore(currentUser, stocks, portfolios, endDate);
     }
