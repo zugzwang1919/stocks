@@ -2,7 +2,6 @@ package com.wolfesoftware.stocks.service;
 
 import com.wolfesoftware.stocks.exception.IllegalActionException;
 import com.wolfesoftware.stocks.model.Option;
-import com.wolfesoftware.stocks.model.Portfolio;
 import com.wolfesoftware.stocks.model.Stock;
 import com.wolfesoftware.stocks.repository.OptionRepository;
 import com.wolfesoftware.stocks.repository.UserBasedRepository;
@@ -25,7 +24,7 @@ public class OptionService extends UserBasedService<Option> {
 
     // Methods required for the Base Class (UserBasedService) to work
     @Override
-    protected UserBasedRepository getRepo() {
+    protected UserBasedRepository<Option> getRepo() {
         return optionRepository;
     }
     @Override

@@ -67,7 +67,7 @@ public class PortfolioService extends UserBasedService<Portfolio> {
         // Get the Transactions
         List<StockTransaction> stockTransactions = stockTransactionRepository.retrieve(portfolios);
         // Get the Unique Stocks contained in all of the transactions
-        List<Stock> uniqueStocks = stockTransactions.stream().map(st -> st.getStock()).distinct().collect(Collectors.toList());
+        List<Stock> uniqueStocks = stockTransactions.stream().map(StockTransaction::getStock).distinct().collect(Collectors.toList());
         return uniqueStocks;
 
     }

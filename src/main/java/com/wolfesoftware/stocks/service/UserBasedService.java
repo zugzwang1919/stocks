@@ -1,7 +1,6 @@
 package com.wolfesoftware.stocks.service;
 
 import com.wolfesoftware.stocks.exception.NotFoundException;
-import com.wolfesoftware.stocks.model.Portfolio;
 import com.wolfesoftware.stocks.model.UserBasedPersistentEntity;
 import com.wolfesoftware.stocks.repository.UserBasedRepository;
 import org.springframework.stereotype.Service;
