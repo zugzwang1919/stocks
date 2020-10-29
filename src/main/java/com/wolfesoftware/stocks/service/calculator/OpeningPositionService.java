@@ -27,12 +27,12 @@ public class OpeningPositionService extends PositionService {
         logger.debug("STARTING - " + debugString);
         StopWatch stopWatch = new StopWatch(debugString);
         stopWatch.start();
-        List<StockTransaction> clonedList = new ArrayList<>(stockTransactions);
-        clonedList.sort( new StockTransaction.StockTransactionComparator(StockTransaction.SortBy.DATE));
+        List<StockTransaction> sortedTransactionList = new ArrayList<>(stockTransactions);
+        sortedTransactionList.sort( new StockTransaction.StockTransactionComparator(StockTransaction.SortBy.DATE));
         LocalDate accumulationDate = null;
         boolean positionEstablished = false;
         OpeningPosition position = null;
-        for( StockTransaction stockTransaction: clonedList) {
+        for( StockTransaction stockTransaction: sortedTransactionList) {
             if (position == null) {
                 position = new OpeningPosition(stockTransaction.getStock(), stockTransaction.getDate());
                 position.setContainsOlderTransactions(false);

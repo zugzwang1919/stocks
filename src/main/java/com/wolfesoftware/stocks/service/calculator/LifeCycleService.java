@@ -43,8 +43,8 @@ public class LifeCycleService {
 
 
     public LifeCycle buildStockLifeCycle(Stock stock, LocalDate requestedStartDate, LocalDate requestedEndDate,
-                                                List<StockTransaction> transactions, List<OptionTransaction> optionTransactions,
-                                                boolean includeDividends, boolean includeOptions) {
+                                         List<StockTransaction> transactions, List<OptionTransaction> optionTransactions,
+                                         boolean includeDividends, boolean includeOptions) {
 
         // Clone the list and trim off all transactions beyond the end date
         List<StockTransaction> clonedStockTransactions = new ArrayList<>(transactions);

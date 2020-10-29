@@ -34,6 +34,7 @@ public class StockSplitRepository {
     }
 
     // RETRIEVE
+
     @Scheduled(fixedRate = 5*60*1000) // Evict the cache every five minutes
     public void evictStockSplitCache() {
         //noinspection ConstantConditions

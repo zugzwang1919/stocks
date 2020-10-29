@@ -10,6 +10,7 @@ import static com.wolfesoftware.stocks.model.calculator.BenchmarkAnalysisRespons
 import static com.wolfesoftware.stocks.model.calculator.BenchmarkAnalysisResponse.SingleSecurityResult;
 
 import com.wolfesoftware.stocks.model.calculator.LifeCycle;
+import static com.wolfesoftware.stocks.model.calculator.BenchmarkAnalysisResponse.CalculatorResults;
 import com.wolfesoftware.stocks.repository.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

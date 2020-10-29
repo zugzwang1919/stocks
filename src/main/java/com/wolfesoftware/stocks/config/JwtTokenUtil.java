@@ -6,16 +6,20 @@
 package com.wolfesoftware.stocks.config;
 
 import java.io.Serializable;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Function;
+import java.util.stream.Collectors;
+
+import com.wolfesoftware.stocks.model.User;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
+import org.springframework.util.StringUtils;
 
 @Component
 public class JwtTokenUtil implements Serializable {
@@ -26,37 +30,57 @@ public class JwtTokenUtil implements Serializable {
     @Value("${jwt.secret}")
     private String secret;
 
-    //retrieve username from jwt token
+
+
+    /*****  EXAMINING a TOKEN *****/
+
     public String getUsernameFromToken(String token) {
         return getClaimFromToken(token, Claims::getSubject);
     }
 
-    //retrieve expiration date from jwt token
-    public Date getExpirationDateFromToken(String token) {
-        return getClaimFromToken(token, Claims::getExpiration);
+    public Boolean validateToken(String token) {
+        final String username = getUsernameFromToken(token);
+        return (username != null && !isTokenExpired(token));
     }
 
-    public <T> T getClaimFromToken(String token, Function<Claims, T> claimsResolver) {
-        final Claims claims = getAllClaimsFromToken(token);
-        return claimsResolver.apply(claims);
+    public List<SimpleGrantedAuthority> buildGrantedAuthoritiesFromToken(String token) {
+        Claims claims = getAllClaimsFromToken(token);
+        String commaSeparatedListOfClaims = (String) claims.get("ROLES");
+        Set<String> setOfRoles = StringUtils.commaDelimitedListToSet(commaSeparatedListOfClaims);
+        List<SimpleGrantedAuthority> listOfGrantedAuthorities = setOfRoles.stream().map(r -> new SimpleGrantedAuthority(r)).collect(Collectors.toList());
+        return listOfGrantedAuthorities;
     }
 
+    // Private methods for examining a token
 
-    //for retrieving any information from token we will need the secret key
     private Claims getAllClaimsFromToken(String token) {
         return Jwts.parser().setSigningKey(secret).parseClaimsJws(token).getBody();
     }
 
-    //check if the token has expired
+    private <T> T getClaimFromToken(String token, Function<Claims, T> claimsResolver) {
+        final Claims claims = getAllClaimsFromToken(token);
+        return claimsResolver.apply(claims);
+    }
+
     private Boolean isTokenExpired(String token) {
         final Date expiration = getExpirationDateFromToken(token);
         return expiration.before(new Date());
     }
 
-    //generate token for user
-    public String generateToken(UserDetails userDetails) {
+    private Date getExpirationDateFromToken(String token) {
+        return getClaimFromToken(token, Claims::getExpiration);
+    }
+
+
+    /******   CREATING A NEW TOKEN ******/
+
+    public String generateToken(User authenticatedUser) {
         Map<String, Object> claims = new HashMap<>();
-        return doGenerateToken(claims, userDetails.getUsername());
+        List<String> authorities = authenticatedUser.getAuthorities().stream().map(authority -> authority.getRole().toString()).collect(Collectors.toList());
+        String value = StringUtils.collectionToDelimitedString(authorities, ",");
+        String key = "ROLES";
+        claims.put(key, value);
+        return doGenerateToken(claims, authenticatedUser.getUsername());
     }
 
     //while creating the token -
@@ -70,9 +94,5 @@ public class JwtTokenUtil implements Serializable {
                 .signWith(SignatureAlgorithm.HS512, secret).compact();
     }
 
-    //validate token
-    public Boolean validateToken(String token, UserDetails userDetails) {
-        final String username = getUsernameFromToken(token);
-        return (username.equals(userDetails.getUsername()) && !isTokenExpired(token));
-    }
+
 }
