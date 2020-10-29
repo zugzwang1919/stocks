@@ -5,21 +5,19 @@
  */
 package com.wolfesoftware.stocks.config;
 
+import com.wolfesoftware.stocks.model.User;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
+
 import java.io.Serializable;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-
-import com.wolfesoftware.stocks.model.User;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.stereotype.Component;
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
-import org.springframework.util.StringUtils;
 
 @Component
 public class JwtTokenUtil implements Serializable {
@@ -47,7 +45,7 @@ public class JwtTokenUtil implements Serializable {
         Claims claims = getAllClaimsFromToken(token);
         String commaSeparatedListOfClaims = (String) claims.get("ROLES");
         Set<String> setOfRoles = StringUtils.commaDelimitedListToSet(commaSeparatedListOfClaims);
-        List<SimpleGrantedAuthority> listOfGrantedAuthorities = setOfRoles.stream().map(r -> new SimpleGrantedAuthority(r)).collect(Collectors.toList());
+        List<SimpleGrantedAuthority> listOfGrantedAuthorities = setOfRoles.stream().map(SimpleGrantedAuthority::new).collect(Collectors.toList());
         return listOfGrantedAuthorities;
     }
 

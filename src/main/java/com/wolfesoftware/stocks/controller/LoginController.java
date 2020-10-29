@@ -16,7 +16,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
-import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -29,8 +28,6 @@ import java.util.Optional;
 public class LoginController {
 
     @Autowired
-    private AuthenticationManager authenticationManager;
-    @Autowired
     private JwtTokenUtil jwtTokenUtil;
     @Resource
     private UserRepository userRepository;
@@ -38,7 +35,7 @@ public class LoginController {
     private static final Logger logger = LoggerFactory.getLogger(LoginController.class);
 
     @RequestMapping(value = "/authenticate", method = RequestMethod.POST)
-    public ResponseEntity<?> createAuthenticationToken(@RequestParam String userName, @RequestParam String password) throws Exception {
+    public ResponseEntity<?> createAuthenticationToken(@RequestParam String userName, @RequestParam String password) throws RuntimeException {
         logger.debug("Inside createAuthenticationToken() for user {}", userName);
 
         User authenticatedUser = authenticate(userName, password);
@@ -50,7 +47,7 @@ public class LoginController {
         return responseEntity;
     }
 
-    private User authenticate(String username, String password) throws Exception {
+    private User authenticate(String username, String password) throws AccessDeniedException {
 
         Optional<User> u = userRepository.findUserByUserName(username);
         if (u.isEmpty() || !u.get().getPassword().equals(password))
