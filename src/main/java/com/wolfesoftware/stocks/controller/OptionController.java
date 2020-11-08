@@ -2,6 +2,7 @@ package com.wolfesoftware.stocks.controller;
 
 import com.wolfesoftware.stocks.model.Option;
 import com.wolfesoftware.stocks.service.OptionService;
+import com.wolfesoftware.stocks.service.StockTransactionService;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
 
@@ -12,7 +13,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/option")
-public class OptionController {
+public class OptionController extends BaseController<Option> {
 
     @Resource
     OptionService optionService;
@@ -50,5 +51,10 @@ public class OptionController {
     @DeleteMapping("/{id}")
     public void deleteStockTransaction(@PathVariable("id") Long id) {
         optionService.deleteById(id);
+    }
+
+    // Used by Base Class
+    protected OptionService getService() {
+        return optionService;
     }
 }

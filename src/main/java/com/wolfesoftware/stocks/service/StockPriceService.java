@@ -78,7 +78,7 @@ public class StockPriceService {
 
     }
 
-    @Scheduled(cron = "0 9 1 * * SAT")  // 1:09 am on Saturday
+    @Scheduled(cron = "0 9 3 * * SAT")  // 3:09 am on Saturday
     @Transactional
     public void loadOrUpdateAllStockPrices() {
 

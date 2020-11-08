@@ -2,7 +2,9 @@ package com.wolfesoftware.stocks.controller;
 
 import com.wolfesoftware.stocks.model.Portfolio;
 import com.wolfesoftware.stocks.model.Stock;
+import com.wolfesoftware.stocks.model.StockTransaction;
 import com.wolfesoftware.stocks.service.PortfolioService;
+import com.wolfesoftware.stocks.service.StockTransactionService;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
@@ -10,7 +12,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/portfolio")
-public class PortfolioController {
+public class PortfolioController extends BaseController<Portfolio>{
 
     @Resource
     PortfolioService portfolioService;
@@ -52,4 +54,7 @@ public class PortfolioController {
         return portfolioService.retrieveStocksUsedInPortfolios(portfolioIds);
     }
 
-}
+    // Used by Base Class
+    protected PortfolioService getService() {
+        return portfolioService;
+    }}

@@ -12,7 +12,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/stock-transaction")
-public class StockTransactionController {
+public class StockTransactionController extends BaseController<StockTransaction> {
 
     @Resource
     StockTransactionService stockTransactionService;
@@ -50,5 +50,10 @@ public class StockTransactionController {
     @DeleteMapping("/{id}")
     public void deleteStockTransaction(@PathVariable("id") Long id) {
         stockTransactionService.deleteById(id);
+    }
+
+    // Used by Base Class
+    protected StockTransactionService getService() {
+        return stockTransactionService;
     }
 }

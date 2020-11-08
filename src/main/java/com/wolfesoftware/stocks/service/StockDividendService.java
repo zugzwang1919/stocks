@@ -53,7 +53,7 @@ public class StockDividendService {
     }
 
 
-    @Scheduled(cron = "0 29 1 * * SAT")  // 1:29 am on Saturday morning
+    @Scheduled(cron = "0 9 1 * * SAT")  // 1:09 am on Saturday morning
     @Transactional
     public void loadOrUpdateAllDividends() {
 

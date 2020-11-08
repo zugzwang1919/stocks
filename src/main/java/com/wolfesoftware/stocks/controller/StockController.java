@@ -10,7 +10,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/stock")
-public class StockController {
+public class StockController extends BaseController<Stock> {
 
     @Resource
     StockService stockService;
@@ -52,5 +52,10 @@ public class StockController {
     @GetMapping("/ticker/{tickerSymbol}")
     public Stock suggestName(@PathVariable("tickerSymbol") String tickerSymbol) {
         return stockService.suggestName(tickerSymbol);
+    }
+
+    // Used by Base Class
+    protected StockService getService() {
+        return stockService;
     }
 }
