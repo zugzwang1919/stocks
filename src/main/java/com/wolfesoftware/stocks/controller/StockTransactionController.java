@@ -25,16 +25,7 @@ public class StockTransactionController extends BaseController<StockTransaction>
         return stockTransactionService.create(portfolioId, date, stockId, activity, tradeSize, amount);
     }
 
-    // RETRIEVE
-    @GetMapping("/{id}")
-    public StockTransaction retrieveOneStockTransaction(@PathVariable("id") Long id) {
-        return stockTransactionService.retrieveById(id);
-    }
-
-    @GetMapping("")
-    public List<StockTransaction> retrieveAllStockTransactions() {
-        return stockTransactionService.retrieveAll();
-    }
+    // RETRIEVE - Handled by BaseController
 
     // UPDATE
     @PostMapping("/{id}")
@@ -46,7 +37,9 @@ public class StockTransactionController extends BaseController<StockTransaction>
         return stockTransactionService.update(id, portfolioId, date, stockId, activity, tradeSize, amount);
     }
 
-    // Used by Base Class
+    // DELETE - Handled by BaseController
+
+    // Used by BaseController
     protected StockTransactionService getService() {
         return stockTransactionService;
     }

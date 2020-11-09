@@ -26,16 +26,9 @@ public class OptionTransactionController extends BaseController<OptionTransactio
         return optionTransactionService.create(portfolioId, date, optionId, activity, numberOfContracts, amount);
     }
 
-    // RETRIEVE
-    @GetMapping("/{id}")
-    public OptionTransaction retrieveOneOptionTransaction(@PathVariable("id") Long id) {
-        return optionTransactionService.retrieveById(id);
-    }
 
-    @GetMapping("")
-    public List<OptionTransaction> retrieveAllOptionTransactions() {
-        return optionTransactionService.retrieveAll();
-    }
+    // RETRIEVE - Handled by BaseController
+
 
     // UPDATE
     @PostMapping("/{id}")
@@ -47,10 +40,11 @@ public class OptionTransactionController extends BaseController<OptionTransactio
         return optionTransactionService.update(id, portfolioId, date, optionId, activity, numberOfContracts, amount);
     }
 
+
     // DELETE - Handled by BaseController
 
 
-    // Used by Base Class
+    // Used by BaseController
     protected OptionTransactionService getService() {
         return optionTransactionService;
     }

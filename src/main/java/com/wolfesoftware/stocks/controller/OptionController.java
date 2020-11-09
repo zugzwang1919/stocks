@@ -26,16 +26,8 @@ public class OptionController extends BaseController<Option> {
         return optionService.create(optionType, stockId, strikePrice, expirationDate);
     }
 
-    // RETRIEVE
-    @GetMapping("/{id}")
-    public Option retrieveOneStockTransaction(@PathVariable("id") Long id) {
-        return optionService.retrieveById(id);
-    }
+    // RETRIEVE - Handled by BaseController
 
-    @GetMapping("")
-    public List<Option> retrieveAllStockTransactions() {
-        return optionService.retrieveAll();
-    }
 
     // UPDATE
     @PostMapping("/{id}")
@@ -50,7 +42,7 @@ public class OptionController extends BaseController<Option> {
     // DELETE - Handled by BaseController
 
 
-    // Used by Base Class
+    // Used by BaseController
     protected OptionService getService() {
         return optionService;
     }

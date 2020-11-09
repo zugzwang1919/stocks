@@ -21,19 +21,12 @@ public class StockController extends BaseController<Stock> {
         return stockService.create(ticker, name, benchmark);
     }
 
-    // RETRIEVE
+    // RETRIEVE - RetrieveOne and RetrieveAll handled in BaseController
     @GetMapping("/benchmarks")
     public List<Stock> retrieveAllBenchmarks() {
         return stockService.retrieveAllBenchmarks();
     }
-    @GetMapping("/{id}")
-    public Stock retrieveOneStock(@PathVariable("id") Long id) {
-        return stockService.retrieveById(id);
-    }
-    @GetMapping("")
-    public List<Stock> retrieveAllStocks() {
-        return stockService.retrieveAll();
-    }
+
 
     // UPDATE
     @PostMapping("/{id}")
@@ -50,7 +43,7 @@ public class StockController extends BaseController<Stock> {
         return stockService.suggestName(tickerSymbol);
     }
 
-    // Used by Base Class
+    // Used by BaseController
     protected StockService getService() {
         return stockService;
     }

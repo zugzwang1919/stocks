@@ -23,16 +23,7 @@ public class PortfolioController extends BaseController<Portfolio>{
         return portfolioService.create(portfolioName);
     }
 
-    // RETRIEVE
-    @GetMapping("/{id}")
-    public Portfolio retrieveOnePortfolio(@PathVariable("id") Long id) {
-        return portfolioService.retrieveById(id);
-    }
-
-    @GetMapping("")
-    public List<Portfolio> retrieveAllPortfolios() {
-        return portfolioService.retrieveAll();
-    }
+    // RETRIEVE - Handled by BaseController
 
     // UPDATE
     @PostMapping("/{id}")
@@ -40,17 +31,17 @@ public class PortfolioController extends BaseController<Portfolio>{
         return portfolioService.updatePortfolio(id, portfolioName);
     }
 
+    // DELETE - Handled by BaseController
 
-    // GET STOCKS!!! that are contained in the list of portfolios
+
+    // OTHER FUNCTIONALITY - Get a list of all stocks with transactions in the list of portfolios
     @GetMapping("/tickers")
     public List<Stock> retrieveStocksUsedInPortfolios(@RequestParam(required = false) List<Long> portfolioIds) {
         return portfolioService.retrieveStocksUsedInPortfolios(portfolioIds);
     }
 
 
-    // DELETE - Handled by BaseController
-
-    // Used by Base Class
+    // Used by BaseController
     protected PortfolioService getService() {
         return portfolioService;
     }}
