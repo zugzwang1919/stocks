@@ -47,11 +47,8 @@ public class OptionController extends BaseController<Option> {
         return optionService.update(id, optionType, stockId, strikePrice, expirationDate);
     }
 
-    // DELETE
-    @DeleteMapping("/{id}")
-    public void deleteStockTransaction(@PathVariable("id") Long id) {
-        optionService.deleteById(id);
-    }
+    // DELETE - Handled by BaseController
+
 
     // Used by Base Class
     protected OptionService getService() {

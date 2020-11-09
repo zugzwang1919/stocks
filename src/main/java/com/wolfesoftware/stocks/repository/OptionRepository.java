@@ -2,14 +2,17 @@ package com.wolfesoftware.stocks.repository;
 
 import com.wolfesoftware.stocks.model.Option;
 import com.wolfesoftware.stocks.model.Stock;
+import com.wolfesoftware.stocks.model.User;
 import com.wolfesoftware.stocks.repository.cloaked.UserBasedRepositoryForOptions;
 import com.wolfesoftware.stocks.service.OptionService;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.List;
 
 @Repository
 public class OptionRepository extends UserBasedRepository<Option> {
@@ -27,6 +30,7 @@ public class OptionRepository extends UserBasedRepository<Option> {
     protected JpaRepository<Option, Long> getUserBasedPersistEntityRepository() {
         return userBasedRepositoryForOptions;
     }
+
 
 
 
@@ -54,5 +58,13 @@ public class OptionRepository extends UserBasedRepository<Option> {
     }
 
 
+    // DELETE
+
+    @Override
+    @Query("delete from User u where u.id in ?1")
+    public void deleteListOfIds(List<Long> ids) {
+        User currentUser = RepositoryUtil.getCurrentUser();
+        userBasedRepositoryForOptions.deleteByUserAndIdIn(currentUser, ids);
+    }
 
 }

@@ -82,7 +82,14 @@ public class OptionTransactionRepository extends UserBasedRepository<OptionTrans
         return userBasedRepositoryForOptionTransactions.save(intermediateOptionTransaction);
     }
 
+    // DELETE
 
+
+    @Override
+    public void deleteListOfIds(List<Long> ids) {
+        User currentUser = RepositoryUtil.getCurrentUser();
+        userBasedRepositoryForOptionTransactions.deleteByUserAndIdIn(currentUser, ids);
+    }
 
 
 }

@@ -37,14 +37,20 @@ public abstract class UserBasedService<T extends UserBasedPersistentEntity> {
     }
 
 
-
     @Transactional
-    public void deleteById(Long portfolioId) {
-        if (!getRepo().existsById(portfolioId))
+    public void deleteById(Long id) {
+        if (!getRepo().existsById(id))
             throw new NotFoundException("The requested " + getEntityNameForMessage() + " could not be found.");
 
-        getRepo().deleteById(portfolioId);
+        getRepo().deleteById(id);
     }
 
+    @Transactional
+    public void deleteList(List<Long> ids) {
+        // First check to ensure that all ids are present
+        if (ids.stream().filter(id -> !getRepo().existsById(id)).count() > 0)
+            throw new NotFoundException("At least one of the items could not be found.");
 
+        getRepo().deleteListOfIds(ids);
+    }
 }

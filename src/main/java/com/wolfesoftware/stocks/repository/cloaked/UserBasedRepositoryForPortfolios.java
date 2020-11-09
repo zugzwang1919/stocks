@@ -9,4 +9,5 @@ import java.util.List;
 
 public interface UserBasedRepositoryForPortfolios extends JpaRepository<Portfolio, Long> {
     List<Portfolio> findByUserAndIdIn(User user, List<Long> portfolioIds);
+    void deleteByUserAndIdIn(User currentUser, List<Long> ids);
 }

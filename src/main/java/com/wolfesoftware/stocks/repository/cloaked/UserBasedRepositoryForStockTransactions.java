@@ -13,4 +13,5 @@ public interface UserBasedRepositoryForStockTransactions extends JpaRepository<S
     List<StockTransaction> findByUserAndStockAndDateBetweenAndPortfolioIn(User user, Stock stock, LocalDate beginDate, LocalDate endDate, List<Portfolio> portfolios);
     List<StockTransaction> findByUserAndStockInAndPortfolioInAndDateBefore(User user, List<Stock> stock, List<Portfolio> portfolios, LocalDate endDate);
     List<StockTransaction> findByUserAndPortfolioIn(User user, List<Portfolio> portfolios);
+    void deleteByUserAndIdIn(User currentUser, List<Long> ids);
 }

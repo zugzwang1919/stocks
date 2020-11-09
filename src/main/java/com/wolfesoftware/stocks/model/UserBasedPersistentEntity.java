@@ -19,8 +19,6 @@ public abstract class UserBasedPersistentEntity extends PersistentEntity {
     @JsonIgnore
     protected User            user;
 
-    private static final long serialVersionUID = 1L;
-
 
     // Working Methods
 

@@ -101,6 +101,12 @@ public class StockTransactionRepository extends UserBasedRepository<StockTransac
     }
 
 
+    // DELETE
 
+    @Override
+    public void deleteListOfIds(List<Long> ids) {
+        User currentUser = RepositoryUtil.getCurrentUser();
+        userBasedRepositoryForStockTransactions.deleteByUserAndIdIn(currentUser, ids);
+    }
 
 }

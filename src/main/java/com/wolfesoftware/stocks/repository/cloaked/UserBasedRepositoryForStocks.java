@@ -13,4 +13,6 @@ public interface UserBasedRepositoryForStocks extends JpaRepository<Stock, Long>
     @Query("SELECT s FROM Stock s " +
             "WHERE s.user = :user AND s.benchmark = true ")
     List<Stock> findAllBenchmarksByUser(User user);
+
+    void deleteByUserAndIdIn(User currentUser, List<Long> ids);
 }

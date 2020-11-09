@@ -47,12 +47,7 @@ public class OptionTransactionController extends BaseController<OptionTransactio
         return optionTransactionService.update(id, portfolioId, date, optionId, activity, numberOfContracts, amount);
     }
 
-    // DELETE
-    @DeleteMapping("/{id}")
-    public void deleteOptionTransaction(@PathVariable("id") Long id) {
-        optionTransactionService.deleteById(id);
-    }
-
+    // DELETE - Handled by BaseController
 
 
     // Used by Base Class

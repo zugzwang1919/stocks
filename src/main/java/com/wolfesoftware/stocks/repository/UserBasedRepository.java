@@ -6,7 +6,6 @@ import com.wolfesoftware.stocks.model.UserBasedPersistentEntity;
 import org.springframework.data.domain.Example;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import javax.annotation.Resource;
 import java.util.List;
 import java.util.Optional;
 
@@ -62,6 +61,11 @@ public abstract class UserBasedRepository<T extends UserBasedPersistentEntity> {
     public void deleteById(Long id) {
         getUserBasedPersistEntityRepository().deleteById(id);
     }
+
+    /// D is for delete.  Implementation must be provided by derived class
+
+    public abstract void deleteListOfIds(List<Long> ids);
+
 
 
 

@@ -41,18 +41,14 @@ public class PortfolioController extends BaseController<Portfolio>{
     }
 
 
-    // DELETE
-    @DeleteMapping("/{id}")
-    public void deletePortfolio(@PathVariable("id") Long id) {
-        portfolioService.deleteById(id);
-    }
-
-
     // GET STOCKS!!! that are contained in the list of portfolios
     @GetMapping("/tickers")
     public List<Stock> retrieveStocksUsedInPortfolios(@RequestParam(required = false) List<Long> portfolioIds) {
         return portfolioService.retrieveStocksUsedInPortfolios(portfolioIds);
     }
+
+
+    // DELETE - Handled by BaseController
 
     // Used by Base Class
     protected PortfolioService getService() {

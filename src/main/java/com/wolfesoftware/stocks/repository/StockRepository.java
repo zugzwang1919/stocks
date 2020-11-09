@@ -73,5 +73,11 @@ public class StockRepository extends UserBasedRepository<Stock>{
         return userBasedRepositoryForStocks.save(intermediateStock);
     }
 
+    // DELETE
 
+    @Override
+    public void deleteListOfIds(List<Long> ids) {
+        User currentUser = RepositoryUtil.getCurrentUser();
+        userBasedRepositoryForStocks.deleteByUserAndIdIn(currentUser, ids);
+    }
 }

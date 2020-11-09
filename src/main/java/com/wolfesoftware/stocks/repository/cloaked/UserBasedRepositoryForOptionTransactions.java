@@ -26,4 +26,6 @@ public interface UserBasedRepositoryForOptionTransactions extends JpaRepository<
                                                                             List<Portfolio> portfolios,
                                                                             LocalDate endDate);
 
+    void deleteByUserAndIdIn(User currentUser, List<Long> ids);
+
 }

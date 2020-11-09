@@ -56,4 +56,12 @@ public class PortfolioRepository extends UserBasedRepository<Portfolio> {
         return userBasedRepositoryForPortfolios.findByUserAndIdIn(currentUser, portfolioIds);
     }
 
+
+    // DELETE
+
+    @Override
+    public void deleteListOfIds(List<Long> ids) {
+        User currentUser = RepositoryUtil.getCurrentUser();
+        userBasedRepositoryForPortfolios.deleteByUserAndIdIn(currentUser, ids);
+    }
 }

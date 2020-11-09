@@ -41,11 +41,7 @@ public class StockController extends BaseController<Stock> {
         return stockService.updateStock(id, name, benchmark);
     }
 
-    // DELETE
-    @DeleteMapping("/{id}")
-    public void deleteStock(@PathVariable("id") Long id) {
-        stockService.deleteById(id);
-    }
+    // DELETE - Handled by BaseController
 
 
     // OTHER Functionality

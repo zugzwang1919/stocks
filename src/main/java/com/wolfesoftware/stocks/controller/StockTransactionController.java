@@ -46,12 +46,6 @@ public class StockTransactionController extends BaseController<StockTransaction>
         return stockTransactionService.update(id, portfolioId, date, stockId, activity, tradeSize, amount);
     }
 
-    // DELETE
-    @DeleteMapping("/{id}")
-    public void deleteStockTransaction(@PathVariable("id") Long id) {
-        stockTransactionService.deleteById(id);
-    }
-
     // Used by Base Class
     protected StockTransactionService getService() {
         return stockTransactionService;
