@@ -40,8 +40,10 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 authorizeRequests().
                 // Endpoints that do not require any authentication
                 antMatchers(HttpMethod.OPTIONS, "/**").permitAll().
-                antMatchers("/authenticate").permitAll().  // Login as an existing user
-                antMatchers( "/user").permitAll().  // Register as a new user
+
+                antMatchers("/authenticate").permitAll().   // Login as an existing user
+                antMatchers( "/user").permitAll().          // Register as a new user
+                antMatchers("/version").permitAll().        // Allow all users to see the About page
                 //antMatchers("/stock").permitAll().
                 // Endpoints available only to Admins
                 antMatchers("/authority/**").access("hasRole('ROLE_ADMIN')").
