@@ -2,9 +2,7 @@ package com.wolfesoftware.stocks.controller;
 
 import com.wolfesoftware.stocks.model.Portfolio;
 import com.wolfesoftware.stocks.model.Stock;
-import com.wolfesoftware.stocks.model.StockTransaction;
 import com.wolfesoftware.stocks.service.PortfolioService;
-import com.wolfesoftware.stocks.service.StockTransactionService;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;

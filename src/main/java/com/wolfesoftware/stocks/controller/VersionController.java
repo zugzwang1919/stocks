@@ -16,7 +16,6 @@ import javax.annotation.Resource;
 
 @RestController
 public class VersionController {
-    private static final Logger logger = LoggerFactory.getLogger(VersionController.class);
 
     @Resource
     VersionService versionService;

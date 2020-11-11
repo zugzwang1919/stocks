@@ -1,6 +1,5 @@
 package com.wolfesoftware.stocks.controller;
 
-import com.wolfesoftware.stocks.model.Option;
 import com.wolfesoftware.stocks.model.UserBasedPersistentEntity;
 import com.wolfesoftware.stocks.service.UserBasedService;
 import org.springframework.web.bind.annotation.DeleteMapping;
