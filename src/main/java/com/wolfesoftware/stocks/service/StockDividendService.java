@@ -54,7 +54,7 @@ public class StockDividendService {
 
 
     @Scheduled(cron = "0 9 1 * * SAT")  // 1:09 am on Saturday morning
-    @Transactional
+    // NOTE: Removed @Transactional statement here out of fear that the transaction was becoming too large
     public void loadOrUpdateAllDividends() {
 
         LoadOrUpdateResponse response = loadOrUpdateDividendsForAllSecurities(StockDividend.EARLIEST_STOCK_DIVIDEND_DATE, LocalDate.now());
@@ -79,7 +79,8 @@ public class StockDividendService {
     }
 
 
-
+    // NOTE: Decided to handle each individual stock in its own transaction
+    @Transactional
     private LoadOrUpdateResponse loadOrUpdateDividendsForOneStock(Stock stock, LocalDate beginDate, LocalDate endDate) {
         LoadOrUpdateResponse result = new LoadOrUpdateResponse();
         List<StockDividend> yahooStockDividends = yahooFinanceService.getHistoricalStockDividends(stock, beginDate, endDate);

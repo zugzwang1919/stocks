@@ -74,7 +74,7 @@ public class StockSplitService {
 
 
     @Scheduled(cron = "0 9 2 * * SAT")  // 2:09 am  on Saturday morning
-    @Transactional
+    // NOTE: Removed @Transactional statement here out of fear that the transaction was becoming too large
     public void loadOrUpdateAllStockSplits() {
 
         LoadOrUpdateResponse response = loadOrUpdateStockSplitsForAllSecurities(StockSplit.EARLIEST_STOCK_SPLIT, LocalDate.now());
@@ -103,6 +103,8 @@ public class StockSplitService {
         return response;
     }
 
+    // NOTE: Decided to handle each individual stock in its own transaction
+    @Transactional
     private LoadOrUpdateResponse loadOrUpdateStockSplitsForOneStock(Stock stock, LocalDate beginDate, LocalDate endDate) {
         LoadOrUpdateResponse result = new LoadOrUpdateResponse();
         List<StockSplit> yahooStockSplits = yahooFinanceService.getHistoricalStockSplits(stock, beginDate, endDate);

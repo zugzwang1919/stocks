@@ -79,7 +79,7 @@ public class StockPriceService {
     }
 
     @Scheduled(cron = "0 9 3 * * SAT")  // 3:09 am on Saturday
-    @Transactional
+    // NOTE: Removed @Transactional statement here out of fear that the transaction was becoming too large
     public void loadOrUpdateAllStockPrices() {
 
         LoadOrUpdateResponse response = loadOrUpdateAllStockPrices(StockPrice.EARLIEST_DAILY_PRICE, LocalDate.now());
@@ -172,6 +172,8 @@ public class StockPriceService {
     This method will retrieve StockPrices compare them with previously persisted
     StockPrices and update them as necessary.
     */
+    // NOTE: Decided to handle each individual stock in its own transaction
+    @Transactional
     private LoadOrUpdateResponse loadOrUpdateStockPrices(Stock stock, LocalDate beginDate, LocalDate endDate) {
         LocalDate augmentedBeginDate = beginDate.isBefore(StockPrice.EARLIEST_DAILY_PRICE) ? StockPrice.EARLIEST_DAILY_PRICE : beginDate;
         LoadOrUpdateResponse response = new LoadOrUpdateResponse();
