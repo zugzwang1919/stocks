@@ -42,10 +42,23 @@ public class LoginController {
         final String token = jwtTokenUtil.generateToken(authenticatedUser);
         // If we find a ROLE_ADMIN role in the authorities for this user, set isAdmin to TRUE
         final Boolean isAdmin = authenticatedUser.getAuthorities().stream().anyMatch(authority -> authority.getRole().equals(Authority.Role.ROLE_ADMIN));
-        ResponseEntity<?> responseEntity =  ResponseEntity.ok(new JwtResponse(token, isAdmin));
+        ResponseEntity<?> responseEntity =  ResponseEntity.ok(new JwtResponse(userName, token, isAdmin));
         logger.debug("Leaving createAuthenticationToken() for user {}", userName);
         return responseEntity;
     }
+
+    @RequestMapping(value="/quickauthenticate")
+    public ResponseEntity<?> createAuthenticationToken() throws RuntimeException {
+        logger.info("Someone has requested to quickly login to the group/anonymous account.");
+        ResponseEntity<?> response = createAuthenticationToken("anonymous", "password");
+        logger.info("Someone has successfully loggged into the group/anonymous account.");
+        return response;
+
+    }
+
+
+
+
 
     private User authenticate(String username, String password) throws AccessDeniedException {
 

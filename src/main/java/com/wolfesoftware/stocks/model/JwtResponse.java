@@ -7,14 +7,19 @@ package com.wolfesoftware.stocks.model;
 
 public class JwtResponse {
 
+    private final String username;
     private final String jwttoken;
     private final Boolean isAdmin;
 
-    public JwtResponse(String jwttoken, Boolean isAdmin) {
+    public JwtResponse(String username, String jwttoken, Boolean isAdmin) {
+        this.username = username;
         this.jwttoken = jwttoken;
         this.isAdmin = isAdmin;
     }
 
+    public String getUsername() {
+        return this.username;
+    }
     public String getToken() {
         return this.jwttoken;
     }
