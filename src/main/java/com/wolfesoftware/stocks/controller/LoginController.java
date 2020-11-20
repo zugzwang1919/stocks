@@ -14,6 +14,7 @@ import com.wolfesoftware.stocks.repository.UserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -31,6 +32,14 @@ public class LoginController {
     private JwtTokenUtil jwtTokenUtil;
     @Resource
     private UserRepository userRepository;
+
+    @Value("${quick.login.username}")
+    private String quickLoginUserName;
+
+    @Value("${quick.login.password}")
+    private String quickLoginPassword;
+
+
 
     private static final Logger logger = LoggerFactory.getLogger(LoginController.class);
 
@@ -50,8 +59,8 @@ public class LoginController {
     @RequestMapping(value="/quickauthenticate")
     public ResponseEntity<?> createAuthenticationToken() throws RuntimeException {
         logger.info("Someone has requested to quickly login to the group/anonymous account.");
-        ResponseEntity<?> response = createAuthenticationToken("anonymous", "password");
-        logger.info("Someone has successfully loggged into the group/anonymous account.");
+        ResponseEntity<?> response = createAuthenticationToken(quickLoginUserName, quickLoginPassword);
+        logger.info("Someone has successfully quickly logged into the group/anonymous account.");
         return response;
 
     }

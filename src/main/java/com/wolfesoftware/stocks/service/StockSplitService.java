@@ -50,7 +50,10 @@ public class StockSplitService {
 
     public BigDecimal stockSplitFactorBetween(Stock stock, LocalDate startDate, LocalDate endDate) {
         BigDecimal returnValue = BigDecimal.ONE;
-        List<StockSplit> stockSplits = retrieveAllForOneStockBetweenDates(stock, startDate, endDate);
+        // We have to be careful not to include the stock split in both the price and the number of shares
+        // For now, we will NOT include it in the number of shares
+        LocalDate adjustedEndDate = endDate.minusDays(1);
+        List<StockSplit> stockSplits = retrieveAllForOneStockBetweenDates(stock, startDate, adjustedEndDate);
         for (StockSplit ss: stockSplits) {
             returnValue = returnValue.multiply(ss.getAfterAmount()).divide(ss.getBeforeAmount(), RoundingMode.HALF_EVEN);
         }
