@@ -193,7 +193,7 @@ public class LifeCycleService {
         OpeningPosition openingPosition = lifeCycle.getOpeningPosition();
         ClosingPosition closingPosition = lifeCycle.getClosingPosition();
         Stock stock = openingPosition.getStock();
-        logger.debug("Caclulating Dividends Accrued.");
+        logger.debug("Calculating Dividends Accrued.");
         logger.debug("Opening position -  {}", openingPosition);
         logger.debug("Closing position -  {}", closingPosition);
         BigDecimal accumulatedDividends = BigDecimal.ZERO;
