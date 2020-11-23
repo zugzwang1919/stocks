@@ -35,8 +35,12 @@ dependencies {
 	// SuperCSV - Used to pull back CSVs from Yahoo
 	compile group: 'net.sf.supercsv', name: 'super-csv', version: '2.4.0'
 
+	// Authenticate with Google Credentials
+	compile group: 'com.google.apis', name: 'google-api-services-oauth2', version: 'v2-rev157-1.25.0'
+
 	// MySql
 	runtimeOnly("mysql:mysql-connector-java")
+
 
 	// Logging with logback-classic through slf4j
 	compile group: 'org.slf4j', name: 'slf4j-api', version: '1.7.30'

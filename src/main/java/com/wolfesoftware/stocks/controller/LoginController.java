@@ -20,6 +20,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
+import java.io.IOException;
+import java.security.GeneralSecurityException;
 
 @RestController
 public class LoginController {
@@ -42,7 +44,7 @@ public class LoginController {
     @RequestMapping(value = "/authenticate", method = RequestMethod.POST)
     public ResponseEntity<?> createAuthenticationToken(@RequestParam String userName, @RequestParam String password) {
         logger.debug("Inside createAuthenticationToken() for user {}", userName);
-        JwtResponse jwtResponse = loginService.authenticateUserViaUsernnameAndPassword(userName, password);
+        JwtResponse jwtResponse = loginService.authenticateUserViaUsernameAndPassword(userName, password);
         ResponseEntity<?> responseEntity = ResponseEntity.ok(jwtResponse);
         logger.debug("Leaving createAuthenticationToken() for user {}", userName);
         return responseEntity;
@@ -58,8 +60,10 @@ public class LoginController {
     }
 
     @RequestMapping(value = "/authenticatewithgoogle")
-    public ResponseEntity<?> createAuthenticationTokenFromGoogleAccessToken(String token) {
-        throw new IllegalStateException("Nothing has been implemented yet.");
+    public ResponseEntity<?> createAuthenticationTokenFromGoogleAccessToken(String token) throws GeneralSecurityException, IOException {
+        JwtResponse jwtResponse = loginService.authenticateUserViaGoogle(token);
+        ResponseEntity<?> responseEntity = ResponseEntity.ok(jwtResponse);
+        return responseEntity;
     }
 
 }
