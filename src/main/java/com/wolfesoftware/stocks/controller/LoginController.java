@@ -65,6 +65,11 @@ public class LoginController {
 
     }
 
+    @RequestMapping(value="/authenticatewithgoogle")
+    public ResponseEntity<?> createAuthenticationTokenFromGoogleAccessToken(String token) {
+        throw new IllegalStateException("Nothing has been implemented yet.");
+    }
+
 
 
 
