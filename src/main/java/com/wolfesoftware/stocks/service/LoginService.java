@@ -22,8 +22,11 @@ import java.util.Optional;
 @Service
 public class LoginService {
 
-    @Autowired
+    @Resource
     private JwtTokenUtil jwtTokenUtil;
+
+    @Resource
+    UserService userService;
 
     @Resource
     UserRepository userRepository;
@@ -54,25 +57,32 @@ public class LoginService {
             throw new IllegalStateException("stocks.wolfe-software.com could not use the Google Credentials.");
         }
 
-        if (idToken != null) {
-            GoogleIdToken.Payload payload = idToken.getPayload();
 
-            // Print user identifier
-            String userId = payload.getSubject();
-            System.out.println("User ID: " + userId);
+        GoogleIdToken.Payload payload = idToken.getPayload();
 
-            // Get profile information from payload
-            String email = payload.getEmail();
-            boolean emailVerified = Boolean.valueOf(payload.getEmailVerified());
-            String name = (String) payload.get("name");
-            String pictureUrl = (String) payload.get("picture");
-            String locale = (String) payload.get("locale");
-            String familyName = (String) payload.get("family_name");
-            String givenName = (String) payload.get("given_name");
+        // Print user identifier
+        String googleUserId = payload.getSubject();
+        System.out.println("Google User ID: " + googleUserId);
 
+        /* Here's some stuff that we have access to from Google should we ever want to use it */
+        /*
+        String email = payload.getEmail();
+        boolean emailVerified = Boolean.valueOf(payload.getEmailVerified());
+        String name = (String) payload.get("name");
+        String pictureUrl = (String) payload.get("picture");
+        String locale = (String) payload.get("locale");
+        String familyName = (String) payload.get("family_name");
+        String givenName = (String) payload.get("given_name");
+        */
+        Optional<User> optionalUser = userRepository.findUserByGoogleid(googleUserId);
+        User ourUser =  optionalUser.isPresent() ?
+                        optionalUser.get() :
+                        userService.createUser(googleUserId) ;
 
-        }
-        return null;
+        final String token = jwtTokenUtil.generateToken(ourUser);
+        final Boolean isAdmin = ourUser.getAuthorities().stream().anyMatch(authority -> authority.getRole().equals(Authority.Role.ROLE_ADMIN));
+
+        return new JwtResponse(ourUser.getUsername(), token, isAdmin);
     }
 
     private User authenticate(String username, String password) throws AccessDeniedException {

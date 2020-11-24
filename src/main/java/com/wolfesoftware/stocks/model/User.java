@@ -21,7 +21,7 @@ import java.util.List;
 public class User extends PersistentEntity {
 
 
-    @Size(max=20)
+    @Size(max=32)
     private String username;
 
     // NOTE: JSON properties are defined on the getters and setters so

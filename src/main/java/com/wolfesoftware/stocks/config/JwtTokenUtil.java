@@ -32,13 +32,11 @@ public class JwtTokenUtil implements Serializable {
 
     /*****  EXAMINING a TOKEN *****/
 
-    public String getUsernameFromToken(String token) {
-        return getClaimFromToken(token, Claims::getSubject);
-    }
+
 
     public Boolean validateToken(String token) {
-        final String username = getUsernameFromToken(token);
-        return (username != null && !isTokenExpired(token));
+        final Long userId = getUserIdFromToken(token);
+        return (userId != null && userId > 0 && !isTokenExpired(token));
     }
 
     public List<SimpleGrantedAuthority> buildGrantedAuthoritiesFromToken(String token) {
@@ -82,6 +80,14 @@ public class JwtTokenUtil implements Serializable {
     /******   CREATING A NEW TOKEN ******/
 
     public String generateToken(User authenticatedUser) {
+        // NOTE:  Three things saved in the token
+        // 1) The subject is set to the UserId - We used to put the username here, but with the ability to login through
+        //    Google (and other Oauth2 mechanisms), users don't need to create username/password/emailAddress
+        // 2) Authentication Claims associated with being having ROLE_USER and/or ROLE_ADMIN
+        // 3) A UserId Claim explicitly (This is an historic holdover from when the username was the subject.
+        //    Now, this is the same value as the subject.)
+
+
         Map<String, Object> claims = new HashMap<>();
         List<String> authorities = authenticatedUser.getAuthorities().stream().map(authority -> authority.getRole().toString()).collect(Collectors.toList());
         // Put the User's ID in the claims
@@ -89,7 +95,7 @@ public class JwtTokenUtil implements Serializable {
         // Put the User's ROLE(S) (e.g. ADMIN_ROLE, USER_ROLE) in the claims
         claims.put("ROLES", StringUtils.collectionToDelimitedString(authorities, ","));
 
-        return doGenerateToken(claims, authenticatedUser.getUsername());
+        return doGenerateToken(claims, authenticatedUser.getId().toString());
     }
 
     //while creating the token -

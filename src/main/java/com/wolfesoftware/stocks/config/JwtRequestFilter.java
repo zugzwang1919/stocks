@@ -33,14 +33,14 @@ public class JwtRequestFilter extends OncePerRequestFilter {
             throws ServletException, IOException {
         final String requestTokenHeader = request.getHeader("Authorization");
 
-        String username = null;
+        Long userId = null;
         String tokenString = null;
         // JWT Token is in the form "Bearer token". Remove Bearer word and get
         // only the Token
         if (requestTokenHeader != null && requestTokenHeader.startsWith("Bearer ")) {
             tokenString = requestTokenHeader.substring(7);
             try {
-                username = jwtTokenUtil.getUsernameFromToken(tokenString);
+                userId = jwtTokenUtil.getUserIdFromToken(tokenString);
             } catch (IllegalArgumentException e) {
                 logger.warn("Unable to get JWT Token");
             } catch (ExpiredJwtException e) {
@@ -50,7 +50,7 @@ public class JwtRequestFilter extends OncePerRequestFilter {
             logger.warn("JWT Token does not begin with Bearer String");
         }
         // Once we get the token validate it.
-        if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+        if (userId != null && userId > 0 && SecurityContextHolder.getContext().getAuthentication() == null) {
 
             // if token is valid, reshape it into a form that Spring can understand and tell it to use it for this context
             if (jwtTokenUtil.validateToken(tokenString)) {
@@ -58,7 +58,7 @@ public class JwtRequestFilter extends OncePerRequestFilter {
                 // Set the username and granted authorities portion of the UserPasswordAuthenticationToken
                 List<SimpleGrantedAuthority> grantedAuthorities = jwtTokenUtil.buildGrantedAuthoritiesFromToken(tokenString);
                 UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken =
-                        new UsernamePasswordAuthenticationToken(username, null, grantedAuthorities);
+                        new UsernamePasswordAuthenticationToken(userId, null, grantedAuthorities);
 
                 // Set the details portion of the UserPasswordAuthenticationToken
                 Map<String, Long> details = new HashMap<>();

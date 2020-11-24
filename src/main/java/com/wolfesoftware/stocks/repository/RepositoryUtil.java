@@ -50,17 +50,12 @@ public class RepositoryUtil {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null)
             return null;
-        Object principal = authentication.getPrincipal();
-        String userName = (principal instanceof UserDetails) ?
-                ((UserDetails) principal).getUsername() :
-                principal.toString();
 
         // Create a minimal User object to be used in JOINs and Comparisons
         // NOTE: User's equals() method only relies on Id.
         // NOTE: The code above requires some basic Authority information as well
         User u = new User();
         u.setId(((Map<String, Long>)authentication.getDetails()).get("ID"));
-        u.setUsername(userName);
 
         List<Authority> authorities = authentication.getAuthorities().stream()
                 .map(ga -> {

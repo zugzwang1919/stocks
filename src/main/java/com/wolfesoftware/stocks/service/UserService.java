@@ -32,11 +32,23 @@ public class UserService  {
         User createdUser  = userRepository.createUser(u);
 
         // By default, make this user a "normal" user
-        Authority a = new Authority(createdUser, Authority.Role.ROLE_USER);
-        authorityRepository.createAuthority(a);
-        List<Authority> authorities = new ArrayList<>();
-        authorities.add(a);
-        createdUser.setAuthorities(authorities);
+        addBasicUserAuthority(u);
+
+        // return the user that now has everything it needs to be a full fledged user
+        return userRepository.updateUser(createdUser);
+
+    }
+
+    @Transactional
+    public User createUser(String googleid) {
+
+        User u = new User();
+        u.setUsername("Google_Random_" + (int)(Math.random()*100000000));
+        u.setGoogleid(googleid);
+        User createdUser  = userRepository.createUser(u);
+
+        // By default, make this user a "normal" user
+        addBasicUserAuthority(u);
 
         // return the user that now has everything it needs to be a full fledged user
         return userRepository.updateUser(createdUser);
@@ -45,10 +57,15 @@ public class UserService  {
 
     @Transactional
     public void deleteUser(Long id) {
-
         userRepository.deleteUser(id);
-
     }
 
-
+    private void addBasicUserAuthority(User u) {
+        // By default, make this user a "normal" user
+        Authority a = new Authority(u, Authority.Role.ROLE_USER);
+        authorityRepository.createAuthority(a);
+        List<Authority> authorities = new ArrayList<>();
+        authorities.add(a);
+        u.setAuthorities(authorities);
+    }
 }

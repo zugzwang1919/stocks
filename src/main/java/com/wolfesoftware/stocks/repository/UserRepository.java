@@ -27,7 +27,12 @@ public class UserRepository  {
         return userToBeReturned;
     }
 
-
+    public Optional<User> findUserByGoogleid(String googleid) {
+        logger.debug("Inside findUserByGoogleid() where googleid = {}", googleid);
+        Optional<User> userToBeReturned =  lowLevelUserRepository.findByGoogleid(googleid);
+        logger.debug("Inside findUserByGoogleid() after retrieval");
+        return userToBeReturned;
+    }
 
     public User createUser(User user) {
         if (lowLevelUserRepository.existsByUsername(user.getUsername()))
