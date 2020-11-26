@@ -10,6 +10,7 @@ import com.wolfesoftware.stocks.model.JwtResponse;
 import com.wolfesoftware.stocks.model.User;
 import com.wolfesoftware.stocks.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
@@ -31,7 +32,8 @@ public class LoginService {
     @Resource
     UserRepository userRepository;
 
-
+    @Value("${google.signin.client.id}")
+    private String googleSignInClientId;
 
     public JwtResponse authenticateUserViaUsernameAndPassword(String userName, String password) {
         User authenticatedUser = authenticate(userName, password);
@@ -48,37 +50,28 @@ public class LoginService {
         // https://developers.google.com/identity/sign-in/web/backend-auth
         //
 
+        // Verify that the IdToken passed is recognized by Google as being valid for our website.
         GoogleIdTokenVerifier verifier = new GoogleIdTokenVerifier.Builder(new NetHttpTransport(), new JacksonFactory())
-                .setAudience(Collections.singletonList("173419237297-cpt0q9mevdfq6el6r3rge968iaft7l79.apps.googleusercontent.com"))
+                .setAudience(Collections.singletonList(googleSignInClientId))
                 .build();
-
         GoogleIdToken idToken = verifier.verify(idTokenString);
         if (idToken == null) {
             throw new IllegalStateException("stocks.wolfe-software.com could not use the Google Credentials.");
         }
 
-
+        // Use the Subject of the Payload from the Token as a key into our "User" table
+        // It should be of the format "100078940104464674469"
         GoogleIdToken.Payload payload = idToken.getPayload();
-
-        // Print user identifier
         String googleUserId = payload.getSubject();
-        System.out.println("Google User ID: " + googleUserId);
 
-        /* Here's some stuff that we have access to from Google should we ever want to use it */
-        /*
-        String email = payload.getEmail();
-        boolean emailVerified = Boolean.valueOf(payload.getEmailVerified());
-        String name = (String) payload.get("name");
-        String pictureUrl = (String) payload.get("picture");
-        String locale = (String) payload.get("locale");
-        String familyName = (String) payload.get("family_name");
-        String givenName = (String) payload.get("given_name");
-        */
+        // If this google credentialed user, has been here before, we should be able to find him in the User table
+        // If not, create a new "User" NOTE:  This user will not have a username, password, or emailaddress
         Optional<User> optionalUser = userRepository.findUserByGoogleid(googleUserId);
         User ourUser =  optionalUser.isPresent() ?
                         optionalUser.get() :
                         userService.createUser(googleUserId) ;
 
+        // Finally, create a token and a JwtResponse that the UI can use going forward
         final String token = jwtTokenUtil.generateToken(ourUser);
         final Boolean isAdmin = ourUser.getAuthorities().stream().anyMatch(authority -> authority.getRole().equals(Authority.Role.ROLE_ADMIN));
 
