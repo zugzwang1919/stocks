@@ -60,16 +60,14 @@ public class LoginService {
         }
 
         // Use the Subject of the Payload from the Token as a key into our "User" table
-        // It should be of the format "100078940104464674469"
+        // It should be of the format "122278940104464674469"
         GoogleIdToken.Payload payload = idToken.getPayload();
         String googleUserId = payload.getSubject();
 
         // If this google credentialed user, has been here before, we should be able to find him in the User table
         // If not, create a new "User" NOTE:  This user will not have a username, password, or emailaddress
         Optional<User> optionalUser = userRepository.findUserByGoogleid(googleUserId);
-        User ourUser =  optionalUser.isPresent() ?
-                        optionalUser.get() :
-                        userService.createUser(googleUserId) ;
+        User ourUser = optionalUser.orElseGet(() -> userService.createUser(googleUserId));
 
         // Finally, create a token and a JwtResponse that the UI can use going forward
         final String token = jwtTokenUtil.generateToken(ourUser);
