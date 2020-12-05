@@ -64,6 +64,7 @@ public class LoginService {
         GoogleIdToken.Payload payload = idToken.getPayload();
         String googleUserId = payload.getSubject();
 
+
         // If this google credentialed user, has been here before, we should be able to find him in the User table
         // If not, create a new "User" NOTE:  This user will not have a username, password, or emailaddress
         Optional<User> optionalUser = userRepository.findUserByGoogleid(googleUserId);
