@@ -1,5 +1,6 @@
 package com.wolfesoftware.stocks.model.calculator;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.wolfesoftware.stocks.model.Stock;
 
 import java.math.BigDecimal;
@@ -22,6 +23,7 @@ public class OpeningPosition extends Position {
     }
 
     // Getters and Setters
+    @JsonProperty(value="containsOlderTransactions")
     public boolean containsOlderTransactions() {
         return containsOlderTransactions;
     }
