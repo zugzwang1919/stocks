@@ -30,8 +30,8 @@ public class IncomeAnalysisController {
 
 
     @RequestMapping(value = "/income-analysis", method = RequestMethod.POST)
-    public IncomeAnalysisResponse performAnalysis(@RequestParam("beginDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate beginDate,
-                                                  @RequestParam("endDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
+    public IncomeAnalysisResponse performAnalysis(@RequestParam(required=false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate beginDate,
+                                                  @RequestParam(required=false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
                                                   @RequestParam List<Long> portfolioIds, @RequestParam List<Long> stockIds,
                                                   @RequestParam Boolean includeDividends, @RequestParam Boolean includeOptions) {
         logger.debug("Inside performAnalysis() - Begin Date = {}", beginDate == null ? null : beginDate.format(DateTimeFormatter.ISO_LOCAL_DATE));

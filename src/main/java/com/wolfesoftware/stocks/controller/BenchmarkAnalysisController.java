@@ -30,8 +30,8 @@ public class BenchmarkAnalysisController {
 
 
     @RequestMapping(value = "/benchmark-analysis", method = RequestMethod.POST)
-    public BenchmarkAnalysisResponse performAnalysis(@RequestParam("beginDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate beginDate,
-                                                     @RequestParam("endDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
+    public BenchmarkAnalysisResponse performAnalysis(@RequestParam(required=false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate beginDate,
+                                                     @RequestParam(required=false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
                                                      @RequestParam List<Long> portfolioIds, @RequestParam List<Long> stockIds,
                                                      @RequestParam List<Long> benchmarkIds,
                                                      @RequestParam Boolean includeDividends, @RequestParam Boolean includeOptions) {
