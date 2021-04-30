@@ -20,6 +20,13 @@ public class UserRepository  {
     LowLevelUserRepository lowLevelUserRepository;
 
 
+    public Optional<User> findUserById(Long id) {
+        logger.debug("Inside findUserById() where id = {}", id);
+        Optional<User> userToBeReturned =  lowLevelUserRepository.findById(id);
+        logger.debug("Inside findUserById() after retrieval");
+        return userToBeReturned;
+    }
+
     public Optional<User> findUserByUserName(String username) {
         logger.debug("Inside findUserByUserName() where user name = {}", username);
         Optional<User> userToBeReturned =  lowLevelUserRepository.findByUsername(username);

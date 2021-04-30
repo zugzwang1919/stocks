@@ -8,6 +8,9 @@ import java.util.Optional;
 
 public interface LowLevelUserRepository extends JpaRepository<User, Long> {
 
+    @Query("SELECT u FROM User u LEFT JOIN FETCH u.authorities a WHERE u.id = :id ")
+    Optional<User> findById(Long id);
+
     @Query("SELECT u FROM User u LEFT JOIN FETCH u.authorities a WHERE u.username = :username ")
     Optional<User> findByUsername(String username);
 

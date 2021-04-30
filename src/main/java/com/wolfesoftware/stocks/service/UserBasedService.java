@@ -38,6 +38,12 @@ public abstract class UserBasedService<T extends UserBasedPersistentEntity> {
 
 
     @Transactional
+    public Long count() {
+        return getRepo().count();
+    }
+
+
+    @Transactional
     public void deleteById(Long id) {
         if (!getRepo().existsById(id))
             throw new NotFoundException("The requested " + getEntityNameForMessage() + " could not be found.");

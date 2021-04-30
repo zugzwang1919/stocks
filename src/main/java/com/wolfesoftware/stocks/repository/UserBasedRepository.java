@@ -38,6 +38,11 @@ public abstract class UserBasedRepository<T extends UserBasedPersistentEntity> {
     }
 
 
+    // OK...  C is also for Count
+    public Long count() {
+        T t = buildExampleWithUser();
+        return getUserBasedPersistEntityRepository().count(Example.of(t));
+    }
 
     // R is for Retrieve
 

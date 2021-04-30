@@ -1,15 +1,20 @@
 package com.wolfesoftware.stocks.service;
 
+import com.wolfesoftware.stocks.exception.NotFoundException;
 import com.wolfesoftware.stocks.model.Authority;
 import com.wolfesoftware.stocks.model.User;
 import com.wolfesoftware.stocks.repository.AuthorityRepository;
 import com.wolfesoftware.stocks.repository.UserRepository;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 @Service
 public class UserService  {
@@ -58,6 +63,28 @@ public class UserService  {
     @Transactional
     public void deleteUser(Long id) {
         userRepository.deleteUser(id);
+    }
+
+    @Transactional
+    /**
+     * getCurrentUser - This builds out a FULL user (unlike the method in RepositoryUtil)
+     */
+    public User getCurrentUser() {
+
+        // Get current userId from the context
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null)
+            return null;
+
+        Long userId = ((Map<String, Long>)authentication.getDetails()).get("ID");
+
+        // Ask the repository layer to build out a full user (including authority groups)
+        Optional<User> currentUser = userRepository.findUserById(userId);
+        if (currentUser.isEmpty()) {
+            throw new NotFoundException("The current user could not be found.");
+        }
+
+        return currentUser.get();
     }
 
     private void addBasicUserAuthority(User u) {
