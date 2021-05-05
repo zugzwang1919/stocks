@@ -31,13 +31,16 @@ public class ProfileService {
 
         Profile profile = new Profile();
 
-        // Fill in Username
+        // Get current user
         User user = userService.getCurrentUser();
-        profile.setUserName(user.getUsername());
 
         List<Profile.AuthenticationSupported> authenticationsSupported = new ArrayList<>();
+        // If we're using User Name / PW authentication, return the UserName and the email address
         if (user.getPassword() != null) {
             authenticationsSupported.add(Profile.AuthenticationSupported.ID_PW);
+            profile.setUserName(user.getUsername());
+            profile.setEmailAddress(user.getEmailaddress());
+
         }
         if (user.getGoogleid() != null) {
             authenticationsSupported.add(Profile.AuthenticationSupported.GOOGLE);

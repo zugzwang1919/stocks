@@ -5,6 +5,7 @@ import java.util.List;
 public class Profile {
 
     private String                          userName;
+    private String                          emailAddress;
     private List<AuthenticationSupported>   authenticationsSupported;
     private Long                            numberOfStocks;
     private Long                            numberOfOptions;
@@ -20,6 +21,12 @@ public class Profile {
     }
     public void setUserName(String userName) {
         this.userName = userName;
+    }
+    public String getEmailAddress() {
+        return emailAddress;
+    }
+    public void setEmailAddress(String emailAddress) {
+        this.emailAddress = emailAddress;
     }
     public List<AuthenticationSupported> getAuthenticationsSupported() {
         return authenticationsSupported;
@@ -51,28 +58,6 @@ public class Profile {
     public void setNumberOfOptionTransactions(Long numberOfOptionTransactions) {
         this.numberOfOptionTransactions = numberOfOptionTransactions;
     }
-
-    /*
-    public String toString() {
-        StringBuilder sb = new StringBuilder();
-        sb.append("User Name = ");
-        sb.append(userName);
-        authenticationsSupported.forEach( (authenticationSupported) -> {
-           sb.append(", Authentication Supported = ");
-           sb.append(authenticationSupported);
-        });
-        sb.append(".  Number of Stocks = ");
-        sb.append(numberOfStocks);
-        sb.append(".  Number of Options = ");
-        sb.append(numberOfOptions);
-        sb.append(".  Number of Stock Transactions = ");
-        sb.append(numberOfStockTransactions);
-        sb.append(".  Number of Option Transactions = ");
-        sb.append(numberOfOptionTransactions);
-
-        return sb.toString();
-    }
-    */
 
     public enum AuthenticationSupported {
         ID_PW,
