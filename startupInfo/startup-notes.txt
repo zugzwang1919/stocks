@@ -1,0 +1,4 @@
+Starting MySql
+sudo service mysqld start
+Checking on the service
+sudo service mysqld status
