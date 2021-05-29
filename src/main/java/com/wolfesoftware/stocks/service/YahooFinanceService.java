@@ -58,7 +58,8 @@ public class YahooFinanceService {
     private static final DateTimeFormatter YYYY_MM_DD = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
     private static final Integer MAXIMUM_NUMBER_OF_RETRIES = 5;
-    private static final int TIMEOUT = 15000;  // For now, set the connection timeout with Yahoo Finance at 15 seconds
+    private static final int CONNECTION_TIMEOUT = 15000;  // For now, set the connection timeout with Yahoo Finance at 15 seconds
+    private static final int COOKIE_AND_CRUMB_TIMEOUT_IN_MINUTES = 5;  // Get a new cookie and crumb every so often just in case we ever get a bad one or Yahoo starts expiring them
 
     private static final Logger logger = LoggerFactory.getLogger(YahooFinanceService.class);
 
@@ -111,16 +112,19 @@ public class YahooFinanceService {
             listOfPrices.remove(0);
             // Create a StockPrice for everything left in the table
             for(List<String> onePrice : listOfPrices) {
-                // I've seen a few times when there's garbage in just one of a stock's historical data.  Just keep trucking.
-                try {
-                    StockPrice stockPrice = new StockPrice(  stock,
+                // Sometimes the word "null" will be returned as a price.  If this occurs, don't try to construct a StockPrice for that day
+                if (!("null".equals(onePrice.get(4)))) {
+                    // I've seen a few times when there's garbage in just one of a stock's historical data.  Just keep trucking.
+                    try {
+                        StockPrice stockPrice = new StockPrice( stock,
                                                                 convertYahooStringToLocalDate(onePrice.get(0)),
                                                                 BigDecimalUtil.createUSDBigDecimal(new BigDecimal(onePrice.get(4))));
-                    result.add(stockPrice);
-                }
-                // Here's the "Just keep trucking" part referenced above.
-                catch(Exception e){
-                    logger.error("Encountered an error while getting historical prices for " + stock.getTicker() + ".  Exception = " + e.toString());
+                        result.add(stockPrice);
+                    }
+                    // Here's the "Just keep trucking" part referenced above.
+                    catch (Exception e) {
+                        logger.error("Encountered an error while getting historical prices for " + stock.getTicker() + ".  Exception = " + e.toString());
+                    }
                 }
             }
         } else {
@@ -251,8 +255,8 @@ public class YahooFinanceService {
             String USER_AGENT = "Mozilla/5.0 (X11; U; Linux i686) Gecko/20071127 Firefox/2.0.0.11"; 
             URL request = new URL(url);
             URLConnection connection = request.openConnection();
-            connection.setConnectTimeout(TIMEOUT);
-            connection.setReadTimeout(TIMEOUT);
+            connection.setConnectTimeout(CONNECTION_TIMEOUT);
+            connection.setReadTimeout(CONNECTION_TIMEOUT);
             connection.setRequestProperty("Cookie", yahooToken.getCookie());
             
             //add request header
@@ -331,16 +335,16 @@ public class YahooFinanceService {
             catch(InterruptedException ex) {
                 Thread.currentThread().interrupt();
             }
-            // If we're just starting OR it's been more than 30 minutes, get a new token
-            if (tokenDateTime == null  || crumb == null || tokenDateTime.isBefore(LocalDateTime.now().minusMinutes(30))) {
+            // We get a new token every so often just to ensure we don't get "stuck" with a bad one for a long period of time
+            if (tokenDateTime == null  || crumb == null || tokenDateTime.isBefore(LocalDateTime.now().minusMinutes(COOKIE_AND_CRUMB_TIMEOUT_IN_MINUTES))) {
                 refreshToken();
             }
             return crumb;
         }
 
         public String getCookie() {
-            // If it's been more than 30 minutes, get a new token
-            if (tokenDateTime == null || cookie == null || tokenDateTime.isBefore(LocalDateTime.now().minusMinutes(30)) ) {
+            // We get a new token every so often just to ensure we don't get "stuck" with a bad one for a long period of time
+            if (tokenDateTime == null || cookie == null || tokenDateTime.isBefore(LocalDateTime.now().minusMinutes(COOKIE_AND_CRUMB_TIMEOUT_IN_MINUTES)) ) {
                 refreshToken();
             }
             return cookie;
@@ -374,8 +378,8 @@ public class YahooFinanceService {
             String url = CURRENT_PRICE_CRUMB_AND_COOKIE_RETRIEVER_URL + tickerSymbol;
             URL request = new URL(url);
             connection = request.openConnection();
-            connection.setConnectTimeout(TIMEOUT);
-            connection.setReadTimeout(TIMEOUT);
+            connection.setConnectTimeout(CONNECTION_TIMEOUT);
+            connection.setReadTimeout(CONNECTION_TIMEOUT);
             logger.debug("Ready to fire off the following URL to Yahoo Finance: {}", url);
             connection.connect();
             HttpURLConnection httpConnection = (HttpURLConnection) connection;
