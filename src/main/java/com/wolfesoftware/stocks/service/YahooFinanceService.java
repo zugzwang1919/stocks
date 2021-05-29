@@ -123,7 +123,7 @@ public class YahooFinanceService {
                     }
                     // Here's the "Just keep trucking" part referenced above.
                     catch (Exception e) {
-                        logger.error("Encountered an error while getting historical prices for " + stock.getTicker() + ".  Exception = " + e.toString());
+                        logger.error("Encountered an error while getting historical prices for " + stock.getTicker() + ".  Exception = " + e);
                     }
                 }
             }
@@ -235,7 +235,7 @@ public class YahooFinanceService {
                 retriesToDate++;
                 logger.info("Could not retrieve {}.  About to try retry #{}", url, retriesToDate);
                 try {
-                    Thread.sleep(1000 * retriesToDate * retriesToDate);                 //1000 milliseconds is one second.
+                    Thread.sleep(1000L * retriesToDate * retriesToDate);                 //1000 milliseconds is one second.
                 } 
                 catch(InterruptedException ex) {
                     Thread.currentThread().interrupt();
@@ -314,7 +314,7 @@ public class YahooFinanceService {
             result = LocalDate.parse(strippedYahooDateString, YYYY_MM_DD);
         }
         catch (DateTimeParseException dtpe) {
-            logger.error("The following string could not be parsed into a LocalDate using {}: {}", YYYY_MM_DD.toString(), strippedYahooDateString);
+            logger.error("The following string could not be parsed into a LocalDate using {}: {}", YYYY_MM_DD, strippedYahooDateString);
             throw dtpe;
         }
         return result;   
@@ -395,7 +395,7 @@ public class YahooFinanceService {
                 }
             }
             else {
-                throw new IllegalStateException("A status code of " + statusCode + "was return inside YahooFinanceSercie.Token.refreshToken()");
+                throw new IllegalStateException("A status code of " + statusCode + "was return inside YahooFinanceService.Token.refreshToken()");
             }
 
             results.cookie = localCookie;

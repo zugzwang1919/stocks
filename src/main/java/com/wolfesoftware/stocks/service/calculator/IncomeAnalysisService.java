@@ -1,11 +1,16 @@
 package com.wolfesoftware.stocks.service.calculator;
 
-import com.wolfesoftware.stocks.exception.NotFoundException;
-import com.wolfesoftware.stocks.model.*;
+import com.wolfesoftware.stocks.model.OptionTransaction;
+import com.wolfesoftware.stocks.model.Portfolio;
+import com.wolfesoftware.stocks.model.Stock;
+import com.wolfesoftware.stocks.model.StockTransaction;
 import com.wolfesoftware.stocks.model.calculator.ClosingPosition;
 import com.wolfesoftware.stocks.model.calculator.IncomeAnalysisResponse;
 import com.wolfesoftware.stocks.model.calculator.LifeCycle;
-import com.wolfesoftware.stocks.repository.*;
+import com.wolfesoftware.stocks.repository.OptionTransactionRepository;
+import com.wolfesoftware.stocks.repository.PortfolioRepository;
+import com.wolfesoftware.stocks.repository.StockRepository;
+import com.wolfesoftware.stocks.repository.StockTransactionRepository;
 import com.wolfesoftware.stocks.service.IdToEntityConverter;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,8 +19,8 @@ import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.ArrayList;
+import java.util.List;
 
 
 @Service
@@ -67,16 +72,23 @@ public class IncomeAnalysisService {
 
 
 
-                // Note whether or not this stock should be included in the end of year snapshot
+                // Note whether or not this lifecycle should be included in the end of year snapshot
                 // And then help build the GRAND TOTALS for all of the snapshots
-                lifeCycle.setIncludedInSnapshot(augmentedEndDate.equals(lifeCycle.getClosingPosition().getDate()));
+                ClosingPosition closingPosition = lifeCycle.getClosingPosition();
+                boolean lifeCycleEndDateInculdesStock = closingPosition != null && augmentedEndDate.equals(closingPosition.getDate());
+                lifeCycle.setIncludedInSnapshot(    lifeCycleEndDateInculdesStock ||
+                                                    lifeCycle.getOptionExposureToPutsAtRequestedEndDate().compareTo(BigDecimal.ZERO) > 0);
                 if (lifeCycle.isIncludedInSnapshot()) {
                     IncomeAnalysisResponse.SnapshotTotals snapshotTotals = incomeAnalysisResponse.getSnapshotTotals();
-                    ClosingPosition closingPosition = lifeCycle.getClosingPosition();
-                    snapshotTotals.incrementStockValue(closingPosition.getValue());
                     snapshotTotals.incrementPutExposure(lifeCycle.getOptionExposureToPutsAtRequestedEndDate());
-                    snapshotTotals.incrementTotalLongExposure(closingPosition.getValue().add(lifeCycle.getOptionExposureToPutsAtRequestedEndDate()));
+                    snapshotTotals.incrementTotalLongExposure(lifeCycle.getOptionExposureToPutsAtRequestedEndDate());
                     snapshotTotals.incrementCallableExposure(lifeCycle.getOptionExposureToCallsAtRequestedEndDate());
+                    // NOTE: It's possible for the snapshot to only have options
+                    // NOTE: If we still have stock at the end of the period, include it in the calculations
+                    if (lifeCycleEndDateInculdesStock) {
+                        snapshotTotals.incrementStockValue(closingPosition.getValue());
+                        snapshotTotals.incrementTotalLongExposure(closingPosition.getValue());
+                    }
                 }
                 // Add the LifeCycle to the response
                 lifeCycles.add(lifeCycle);
