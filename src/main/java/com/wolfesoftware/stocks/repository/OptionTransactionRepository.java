@@ -9,6 +9,7 @@ import org.springframework.stereotype.Repository;
 import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -51,7 +52,16 @@ public class OptionTransactionRepository extends UserBasedRepository<OptionTrans
         return userBasedRepositoryForOptionTransactions.findByUserAndStockInAndPortfolioInAndDateBefore(currentUser, stocks, portfolios, endDate);
     }
 
-
+    // Retrieve a unique list of Stocks that are used in StockTransactions that are used in the list of portfolios
+    public List<Stock> retrieveUniqueStocks(List<Long> portfolioIds) {
+        // Just in case the caller provided no portfolios return an empty list.
+        // Hibernate does not like providing a list that is empty
+        if (portfolioIds == null || portfolioIds.isEmpty()) {
+            return new ArrayList<>();
+        }
+        User currentUser = RepositoryUtil.getCurrentUser();
+        return userBasedRepositoryForOptionTransactions.findUniqueStocksInOptionTransactionByUserAndPortfolioIn(currentUser, portfolioIds);
+    }
 
     // UPDATE
 

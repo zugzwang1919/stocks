@@ -26,6 +26,11 @@ public interface UserBasedRepositoryForOptionTransactions extends JpaRepository<
                                                                             List<Portfolio> portfolios,
                                                                             LocalDate endDate);
 
+    @Query( "SELECT distinct s FROM OptionTransaction ot JOIN ot.option.stock s JOIN ot.portfolio p "  +
+            "WHERE ot.user = :user AND p.id in :portfolioIds")
+    List<Stock> findUniqueStocksInOptionTransactionByUserAndPortfolioIn( User user,
+                                                                        List<Long> portfolioIds);
+
     void deleteByUserAndIdIn(User currentUser, List<Long> ids);
 
 }

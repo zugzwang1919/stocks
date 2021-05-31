@@ -5,7 +5,7 @@ import com.wolfesoftware.stocks.exception.DuplicateException;
 import com.wolfesoftware.stocks.exception.IllegalActionException;
 import com.wolfesoftware.stocks.model.Portfolio;
 import com.wolfesoftware.stocks.model.Stock;
-import com.wolfesoftware.stocks.model.StockTransaction;
+import com.wolfesoftware.stocks.repository.OptionTransactionRepository;
 import com.wolfesoftware.stocks.repository.PortfolioRepository;
 import com.wolfesoftware.stocks.repository.StockTransactionRepository;
 import com.wolfesoftware.stocks.repository.UserBasedRepository;
@@ -14,9 +14,9 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service
 public class PortfolioService extends UserBasedService<Portfolio> {
@@ -26,6 +26,9 @@ public class PortfolioService extends UserBasedService<Portfolio> {
 
     @Resource
     private StockTransactionRepository stockTransactionRepository;
+
+    @Resource
+    private OptionTransactionRepository optionTransactionRepository;
 
     // Methods required for the Base Class (UserBasedService) to work
     @Override
@@ -62,14 +65,16 @@ public class PortfolioService extends UserBasedService<Portfolio> {
 
     @Transactional
     public List<Stock> retrieveStocksUsedInPortfolios(List<Long> portfolioIds) {
-        // Get the Portfolios
-        List<Portfolio> portfolios = portfolioRepository.retrievePortfolios(portfolioIds);
-        // Get the Transactions
-        List<StockTransaction> stockTransactions = stockTransactionRepository.retrieve(portfolios);
-        // Get the Unique Stocks contained in all of the transactions
-        List<Stock> uniqueStocks = stockTransactions.stream().map(StockTransaction::getStock).distinct().collect(Collectors.toList());
-        return uniqueStocks;
 
+        List<Stock> uniqueStocksInStockTransactions = stockTransactionRepository.retrieveUniqueStocks(portfolioIds);
+        return uniqueStocksInStockTransactions;
+        /*
+        List<Stock> uniqueStocksInOptionTransactions = optionTransactionRepository.retrieveUniqueStocks(portfolioIds);
+        List<Stock> union = Stream.concat(uniqueStocksInStockTransactions.stream(), uniqueStocksInOptionTransactions.stream())
+                .distinct()
+                .collect(Collectors.toList());
+        return union;
+        */
     }
 
 

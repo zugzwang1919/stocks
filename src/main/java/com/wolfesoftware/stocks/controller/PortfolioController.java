@@ -32,7 +32,7 @@ public class PortfolioController extends BaseController<Portfolio>{
     // DELETE - Handled by BaseController
 
 
-    // OTHER FUNCTIONALITY - Get a list of all stocks with transactions in the list of portfolios
+    // OTHER FUNCTIONALITY - Get a list of all stocks with transactions or stock option transactions in the list of portfolios
     @GetMapping("/tickers")
     public List<Stock> retrieveStocksUsedInPortfolios(@RequestParam(required = false) List<Long> portfolioIds) {
         return portfolioService.retrieveStocksUsedInPortfolios(portfolioIds);
