@@ -14,43 +14,55 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
-import java.io.Serializable;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Component
-public class JwtTokenUtil implements Serializable {
+public class JwtTokenUtil {
 
-    private static final long serialVersionUID = -2550185165626007488L;
-    public static final long JWT_TOKEN_VALIDITY = 5 * 60 * 60;
+    public static final int ACCESS_TOKEN_TIME_TO_LIVE = 5 * 60 * 1000;  // Five minutes
+    // public static final int ACCESS_TOKEN_TIME_TO_LIVE = 5 * 60 * 1000;  // Debug value
+    public static final int REFRESH_ACCESS_TOKEN_TIME_TO_LIVE = 2 * 60 * 60 * 1000; // Two hours
+    // public static final int REFRESH_ACCESS_TOKEN_TIME_TO_LIVE = 15 * 60 * 1000; // Debug value
 
     @Value("${jwt.secret}")
     private String secret;
 
+    private static final String ACCESS_TOKEN_NAME = "Access Token";
+    private static final String REFRESH_TOKEN_NAME = "Refresh Token";
+
+    private static final String USER_ID_KEY_NAME = "USER_ID";
+    private static final String USER_ROLES_KEY_NAME = "USER_ROLES";
 
 
     /*****  EXAMINING a TOKEN *****/
 
 
-
     public Boolean validateToken(String token) {
-        final Long userId = getUserIdFromToken(token);
-        return (userId != null && userId > 0 && !isTokenExpired(token));
+        if (!isTokenExpired(token) && isAccessToken(token)) {
+            final Long userId = getUserIdFromToken(token);
+            return (userId != null && userId > 0);
+        }
+        return false;
+    }
+    public Boolean validateRefreshToken(String refreshTokenString) {
+        return !isTokenExpired(refreshTokenString) && isRefreshToken(refreshTokenString);
     }
 
     public List<SimpleGrantedAuthority> buildGrantedAuthoritiesFromToken(String token) {
         Claims claims = getAllClaimsFromToken(token);
-        String commaSeparatedListOfClaims = (String) claims.get("ROLES");
+        String commaSeparatedListOfClaims = (String) claims.get(USER_ROLES_KEY_NAME);
         Set<String> setOfRoles = StringUtils.commaDelimitedListToSet(commaSeparatedListOfClaims);
         List<SimpleGrantedAuthority> listOfGrantedAuthorities = setOfRoles.stream().map(SimpleGrantedAuthority::new).collect(Collectors.toList());
         return listOfGrantedAuthorities;
     }
+
     public Long getUserIdFromToken(String token) {
         Claims claims = getAllClaimsFromToken(token);
         // This is a bit confusing.  Even though when the claim is generated, Id is a LONG, once it has been
         // encoded, sent to the client, returned from the client, and decoded, it has magically become and INTEGER
-        Integer idInteger =  (Integer) claims.get("ID");
+        Integer idInteger =  (Integer) claims.get(USER_ID_KEY_NAME);
         Long idLong = Long.valueOf(idInteger);
         return idLong;
 
@@ -58,8 +70,27 @@ public class JwtTokenUtil implements Serializable {
 
     // Private methods for examining a token
 
-    private Claims getAllClaimsFromToken(String token) {
-        return Jwts.parser().setSigningKey(secret).parseClaimsJws(token).getBody();
+    private Boolean isTokenExpired(String token) {
+        final Date expiration = getExpirationDateFromToken(token);
+        return expiration.before(new Date());
+    }
+
+    private Boolean isAccessToken(String token) {
+        String tokenType = getSubjectFromToken(token);
+        return ACCESS_TOKEN_NAME.equals(tokenType);
+    }
+
+    private Boolean isRefreshToken(String token) {
+        String tokenType = getSubjectFromToken(token);
+        return REFRESH_TOKEN_NAME.equals(tokenType);
+    }
+
+    private Date getExpirationDateFromToken(String token) {
+        return getClaimFromToken(token, Claims::getExpiration);
+    }
+
+    private String getSubjectFromToken(String token) {
+        return getClaimFromToken(token, Claims::getSubject);
     }
 
     private <T> T getClaimFromToken(String token, Function<Claims, T> claimsResolver) {
@@ -67,13 +98,8 @@ public class JwtTokenUtil implements Serializable {
         return claimsResolver.apply(claims);
     }
 
-    private Boolean isTokenExpired(String token) {
-        final Date expiration = getExpirationDateFromToken(token);
-        return expiration.before(new Date());
-    }
-
-    private Date getExpirationDateFromToken(String token) {
-        return getClaimFromToken(token, Claims::getExpiration);
+    private Claims getAllClaimsFromToken(String token) {
+        return Jwts.parser().setSigningKey(secret).parseClaimsJws(token).getBody();
     }
 
 
@@ -91,22 +117,36 @@ public class JwtTokenUtil implements Serializable {
         Map<String, Object> claims = new HashMap<>();
         List<String> authorities = authenticatedUser.getAuthorities().stream().map(authority -> authority.getRole().toString()).collect(Collectors.toList());
         // Put the User's ID in the claims
-        claims.put("ID", authenticatedUser.getId());
+        claims.put(USER_ID_KEY_NAME, authenticatedUser.getId());
         // Put the User's ROLE(S) (e.g. ADMIN_ROLE, USER_ROLE) in the claims
-        claims.put("ROLES", StringUtils.collectionToDelimitedString(authorities, ","));
+        claims.put(USER_ROLES_KEY_NAME, StringUtils.collectionToDelimitedString(authorities, ","));
 
-        return doGenerateToken(claims, authenticatedUser.getId().toString());
+        return doGenerateToken(claims, ACCESS_TOKEN_NAME, ACCESS_TOKEN_TIME_TO_LIVE);
+    }
+
+    public String generateRefreshToken(Long userId) {
+        Map<String, Object> claims = new HashMap<>();
+        // Put the User's ID in the claims
+        claims.put(USER_ID_KEY_NAME, userId);
+
+        return doGenerateToken(claims, REFRESH_TOKEN_NAME, REFRESH_ACCESS_TOKEN_TIME_TO_LIVE);
+
     }
 
     //while creating the token -
-    //1. Define  claims of the token, like Issuer, Expiration, Subject, and the ID
-    //2. Sign the JWT using the HS512 algorithm and secret key.
-    //3. According to JWS Compact Serialization(https://tools.ietf.org/html/draft-ietf-jose-json-web-signature-41#section-3.1)
+    // 1. Set the claims created by the caller
+    // 2. Set the pre-defined claims used by most tokens, like Subject, Time Issued, Expiration Time
+    // 3. Sign the JWT using the HS512 algorithm and secret key.
+    // 4. According to JWS Compact Serialization(https://tools.ietf.org/html/draft-ietf-jose-json-web-signature-41#section-3.1)
     //   compaction of the JWT to a URL-safe string
-    private String doGenerateToken(Map<String, Object> claims, String subject) {
-        return Jwts.builder().setClaims(claims).setSubject(subject).setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + JWT_TOKEN_VALIDITY * 1000))
-                .signWith(SignatureAlgorithm.HS512, secret).compact();
+    private String doGenerateToken(Map<String, Object> claims, String subject, int timeToLiveInMillis) {
+        return Jwts.builder()
+                .setClaims(claims)
+                .setSubject(subject)
+                .setIssuedAt(new Date(System.currentTimeMillis()))
+                .setExpiration(new Date(System.currentTimeMillis() + timeToLiveInMillis))
+                .signWith(SignatureAlgorithm.HS512, secret)
+                .compact();
     }
 
 

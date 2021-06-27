@@ -66,5 +66,13 @@ public class LoginController {
         return responseEntity;
     }
 
+    @RequestMapping(value = "/refreshtoken", method = RequestMethod.POST)
+    public ResponseEntity<?> refreshToken(@RequestParam String refreshToken) throws GeneralSecurityException, IOException {
+        JwtResponse jwtResponse = loginService.getNewToken(refreshToken);
+        ResponseEntity<?> responseEntity = ResponseEntity.ok(jwtResponse);
+        return responseEntity;
+    }
+
+
 }
 

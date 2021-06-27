@@ -40,7 +40,8 @@ public class LoginService {
         final String token = jwtTokenUtil.generateToken(authenticatedUser);
         // If we find a ROLE_ADMIN role in the authorities for this user, set isAdmin to TRUE
         final Boolean isAdmin = authenticatedUser.getAuthorities().stream().anyMatch(authority -> authority.getRole().equals(Authority.Role.ROLE_ADMIN));
-        return new JwtResponse(userName, token, isAdmin);
+        final String refreshToken = jwtTokenUtil.generateRefreshToken(authenticatedUser.getId());
+        return new JwtResponse(userName, token, isAdmin, refreshToken);
     }
 
     public JwtResponse authenticateUserViaGoogle(String idTokenString) throws GeneralSecurityException, IOException {
@@ -74,7 +75,30 @@ public class LoginService {
         final String token = jwtTokenUtil.generateToken(ourUser);
         final Boolean isAdmin = ourUser.getAuthorities().stream().anyMatch(authority -> authority.getRole().equals(Authority.Role.ROLE_ADMIN));
 
-        return new JwtResponse(ourUser.getUsername(), token, isAdmin);
+        final String refreshToken = jwtTokenUtil.generateRefreshToken(ourUser.getId());
+
+        return new JwtResponse(ourUser.getUsername(), token, isAdmin, refreshToken);
+    }
+
+    public JwtResponse getNewToken(String refreshTokenString) throws GeneralSecurityException, IOException {
+        // Make sure that this is a valid Refresh Token
+        if (!jwtTokenUtil.validateRefreshToken(refreshTokenString)) {
+            throw new AccessDeniedException("Nope.  Try again.");
+        }
+        // Make sure that the User Id contained in the Refresh Token is valid
+        Long userId = jwtTokenUtil.getUserIdFromToken(refreshTokenString);
+        Optional<User> u = userRepository.findUserById(userId);
+        if (u.isEmpty()) {
+            throw new AccessDeniedException("Nope.  Try again.");
+        }
+        User ourUser = u.get();
+        final Boolean isAdmin = ourUser.getAuthorities().stream().anyMatch(authority -> authority.getRole().equals(Authority.Role.ROLE_ADMIN));
+        // Get a new token
+        String newToken = jwtTokenUtil.generateToken(ourUser);
+        // Get a new refresh token
+        String refreshToken = jwtTokenUtil.generateRefreshToken(userId);
+        // Build & return the response
+        return new JwtResponse(ourUser.getUsername(), newToken, isAdmin, refreshToken);
     }
 
     private User authenticate(String username, String password) throws AccessDeniedException {

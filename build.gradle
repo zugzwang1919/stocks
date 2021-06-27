@@ -8,7 +8,7 @@ plugins {
 }
 
 group = 'wolfe-software.com'
-version = '21.05'
+version = '21.06'
 sourceCompatibility = 11
 def details = versionDetails()
 

@@ -67,14 +67,12 @@ public class PortfolioService extends UserBasedService<Portfolio> {
     public List<Stock> retrieveStocksUsedInPortfolios(List<Long> portfolioIds) {
 
         List<Stock> uniqueStocksInStockTransactions = stockTransactionRepository.retrieveUniqueStocks(portfolioIds);
-        return uniqueStocksInStockTransactions;
-        /*
+
         List<Stock> uniqueStocksInOptionTransactions = optionTransactionRepository.retrieveUniqueStocks(portfolioIds);
         List<Stock> union = Stream.concat(uniqueStocksInStockTransactions.stream(), uniqueStocksInOptionTransactions.stream())
                 .distinct()
                 .collect(Collectors.toList());
         return union;
-        */
     }
 
 
